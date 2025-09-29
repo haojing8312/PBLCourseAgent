@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(echo $APPDATA)",
+      "Bash(claude config list:*)",
+      "Bash(claude mcp:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m pytest app/tests/test_main.py -v)",
+      "Bash(python -m pytest app/tests/test_project_foundation_agent.py -v)",
+      "Bash(python -m pytest app/tests/test_assessment_framework_agent.py -v)",
+      "Bash(python -m pytest app/tests/test_learning_blueprint_agent.py -v)",
+      "Bash(python -m pytest app/tests/test_learning_blueprint_agent.py::TestLearningBlueprintAgent::test_build_user_prompt -v)",
+      "Bash(python -m pytest app/tests/test_workflow_service.py -v)",
+      "Bash(python -m pytest app/tests/ -v --tb=short)",
+      "Bash(python -m pytest:*)",
+      "Bash(pytest:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(uv:*)",
+      "Bash(timeout 5 uv run:*)",
+      "Bash(timeout :* uv run uvicorn:*)",
+      "Bash(cd backend && timeout :* uv run uvicorn:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:support.anthropic.com)",
+      "Bash(timeout 10 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload)",
+      "WebFetch(domain:support.claude.com)",
+      "Bash(curl:*)",
+      "Bash(echo $USERPROFILE)",
+      "Bash(findstr:*)",
+      "Bash(unset:*)",
+      "Bash(python:*)",
+      "Bash(http://localhost:8001/api/v1/generate)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
