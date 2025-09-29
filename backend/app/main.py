@@ -17,12 +17,17 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
-    # 配置CORS
+    # 配置CORS - 直接指定端口以确保生效
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
+        allow_origins=[
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:5173",
+            "http://127.0.0.1:3001"
+        ],
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
 

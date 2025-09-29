@@ -62,3 +62,17 @@ class HealthCheck(BaseModel):
     status: str = Field("healthy", description="服务状态")
     timestamp: datetime = Field(default_factory=datetime.now)
     version: str = Field("1.0.0", description="API版本")
+
+
+class ChatMessage(BaseModel):
+    """聊天消息"""
+    role: str = Field(..., description="消息角色: user/assistant")
+    content: str = Field(..., description="消息内容")
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+
+class ChatRequest(BaseModel):
+    """聊天请求"""
+    message: str = Field(..., description="用户消息")
+    context: Optional[str] = Field(None, description="对话上下文")
+    session_id: Optional[str] = Field(None, description="会话ID")

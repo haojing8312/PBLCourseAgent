@@ -26,27 +26,33 @@
 ### 项目结构
 ```
 eduagents/
-├── backend/
+├── backend/                 # Python + FastAPI后端
 │   ├── app/
 │   │   ├── agents/          # 三个AI Agent实现
 │   │   ├── api/             # FastAPI路由
 │   │   ├── core/            # 核心配置和工具
 │   │   ├── models/          # 数据模型
+│   │   ├── services/        # AI服务和业务逻辑
 │   │   └── tests/           # 后端测试
-│   ├── requirements.txt
+│   ├── pyproject.toml       # uv项目配置
+│   ├── .env                 # 环境变量（不提交）
 │   └── main.py
-├── frontend/
+├── frontend-v2/             # React + TypeScript + tldraw前端（画布架构）
 │   ├── src/
 │   │   ├── components/      # React组件
-│   │   ├── pages/           # 页面组件
-│   │   ├── services/        # API调用
+│   │   │   ├── canvas/      # 无限画布组件
+│   │   │   ├── chat/        # AI聊天组件
+│   │   │   ├── toolbar/     # 工具栏组件
+│   │   │   └── workflow/    # 工作流组件
+│   │   ├── services/        # API调用和业务服务
+│   │   ├── stores/          # Zustand状态管理
 │   │   ├── types/           # TypeScript类型定义
 │   │   └── utils/           # 工具函数
 │   ├── package.json
 │   └── vite.config.ts
 ├── docs/                    # 文档和基准案例
 ├── tests/                   # 集成测试
-└── CLAUDE.md               # 此文件
+└── CLAUDE.md               # 此文件（开发配置和质量标准）
 ```
 
 ### Git 提交规范
@@ -60,8 +66,10 @@ eduagents/
 ### 环境变量
 创建 `.env` 文件包含:
 ```
-OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL=gpt-4o
+# 使用专用环境变量名避免冲突
+PBL_AI_API_KEY=your_ai_api_key
+PBL_AI_MODEL=deepseek-chat
+PBL_AI_BASE_URL=http://your-ai-service-url/v1
 DATABASE_URL=sqlite:///./app.db
 ```
 
@@ -110,6 +118,38 @@ uv sync --upgrade
 2. 遵循PRD中定义的性能指标（总响应时间<90秒）
 3. AI生成内容必须达到黄金标准案例80%匹配度
 4. 代码review通过且无安全漏洞
+
+### 错误处理质量理念
+**核心原则：透明性胜过降级回复**
+
+错误处理必须遵循以下原则：
+1. **透明性**：用户总是知道真实状态，不掩盖错误
+2. **准确性**：成功就是真正的AI回复，失败就是明确的错误信息
+3. **可维护性**：开发者能快速定位问题根因
+4. **用户体验**：用户不会被虚假的"成功"误导
+
+**严禁的做法：**
+- ❌ 降级回复掩盖真实错误
+- ❌ 返回低质量内容假装成功
+- ❌ 隐藏具体错误详情
+
+**正确的做法：**
+- ✅ 直接返回 `success: false` 和具体错误信息
+- ✅ 在前端明确显示错误状态和详情
+- ✅ 提供足够信息让用户/开发者定位问题
+- ✅ 保持服务质量的一致性：要么高质量成功，要么明确失败
+
+**实现要求：**
+```typescript
+// 正确的错误处理
+if (result.success) {
+  // 展示真实的AI生成内容
+  showAIResponse(result.data.response)
+} else {
+  // 明确显示错误，不降级
+  showError(`❌ ${result.message}\n错误详情: ${result.error}`)
+}
+```
 
 ### Agent开发指南
 每个Agent都应该：

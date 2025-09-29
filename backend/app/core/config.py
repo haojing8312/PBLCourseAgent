@@ -2,16 +2,17 @@
 应用配置管理
 """
 from typing import List, Optional
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     """应用设置类"""
 
-    # OpenAI配置
-    openai_api_key: str
-    openai_model: str = "gpt-4o"
-    openai_base_url: str = "https://api.openai.com/v1"
+    # OpenAI配置 - 使用PBL专用环境变量名避免冲突
+    openai_api_key: str = Field(alias="PBL_AI_API_KEY")
+    openai_model: str = Field(default="gpt-4o", alias="PBL_AI_MODEL")
+    openai_base_url: str = Field(default="https://api.openai.com/v1", alias="PBL_AI_BASE_URL")
 
     # 模型参数配置
     openai_temperature: float = 0.7
@@ -31,7 +32,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./app.db"
 
     # CORS配置
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"]
 
     # 性能配置
     max_timeout: int = 90  # 最大响应时间（秒）
