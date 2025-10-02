@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, AlertCircle, Play } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { apiService } from '@/services/api'
+import type { Stage1Output, Stage2Output, Stage3Output } from '@/services/api'
 import { InfiniteCanvas } from '@/components/canvas/InfiniteCanvas'
-import { ChatSidebar } from '@/components/chat/ChatSidebar'
-import { useAppStore } from '@/stores/appStore'
+import { WorkflowSidebar } from '@/components/workflow/WorkflowSidebar'
 
 interface CourseInfo {
   courseType: string
@@ -15,51 +16,31 @@ interface CourseInfo {
   specialRequirements: string
 }
 
-interface WorkflowStage {
-  id: string
-  name: string
-  title: string
-  description: string
-  status: 'pending' | 'in_progress' | 'completed'
-  content?: string
-}
+type StageStatus = 'pending' | 'generating' | 'completed' | 'editing' | 'error'
 
 export function CourseDesignPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { isChatOpen, setChatOpen } = useAppStore()
 
   const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null)
-  const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([
-    {
-      id: 'stage1',
-      name: '项目基础定义',
-      title: '项目基础定义',
-      description: '确定项目范围、目标和基本框架',
-      status: 'pending'
-    },
-    {
-      id: 'stage2',
-      name: '评估框架',
-      title: '评估框架设计',
-      description: '建立评估标准和方法',
-      status: 'pending'
-    },
-    {
-      id: 'stage3',
-      name: '学习蓝图',
-      title: '学习蓝图生成',
-      description: '制定详细的学习活动和时间安排',
-      status: 'pending'
-    }
-  ])
+  const [currentStage, setCurrentStage] = useState<1 | 2 | 3 | 'complete'>(1)
 
-  const [currentStageIndex, setCurrentStageIndex] = useState(0)
-  const [isWorkflowStarted, setIsWorkflowStarted] = useState(false)
-  const [showStageConfirmation, setShowStageConfirmation] = useState(false)
+  // Stage data and status
+  const [stage1Status, setStage1Status] = useState<StageStatus>('pending')
+  const [stage1Data, setStage1Data] = useState<Stage1Output | null>(null)
+  const [stage1EditableContent, setStage1EditableContent] = useState('')
+
+  const [stage2Status, setStage2Status] = useState<StageStatus>('pending')
+  const [stage2Data, setStage2Data] = useState<Stage2Output | null>(null)
+  const [stage2EditableContent, setStage2EditableContent] = useState('')
+
+  const [stage3Status, setStage3Status] = useState<StageStatus>('pending')
+  const [stage3Data, setStage3Data] = useState<Stage3Output | null>(null)
+  const [stage3EditableContent, setStage3EditableContent] = useState('')
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    // 从URL参数中获取课程信息
     const dataParam = searchParams.get('data')
     if (dataParam) {
       try {
@@ -67,180 +48,218 @@ export function CourseDesignPage() {
         setCourseInfo(decodedData)
       } catch (error) {
         console.error('Failed to parse course data:', error)
-        // 如果解析失败，返回创建页面
         navigate('/create')
       }
     } else {
-      // 如果没有课程数据，返回创建页面
       navigate('/create')
     }
   }, [searchParams, navigate])
 
-  const startWorkflow = async () => {
+  // ========== Stage 1: Project Foundation ==========
+  const startStage1 = async () => {
     if (!courseInfo) return
 
-    setIsWorkflowStarted(true)
-    setChatOpen(true)
+    setStage1Status('generating')
+    setErrorMessage(null)
 
-    // 开始第一阶段
-    await startStage(0)
-  }
+    try {
+      const response = await apiService.generateStage1({
+        course_topic: courseInfo.topic,
+        course_overview: courseInfo.description,
+        age_group: `${courseInfo.studentAge}岁`,
+        duration: courseInfo.duration,
+        ai_tools: courseInfo.courseType === 'stem' ? 'Claude Code, 豆包, 秒哈' : '相关创作工具'
+      })
 
-  const startStage = async (stageIndex: number) => {
-    if (stageIndex >= workflowStages.length) return
-
-    setCurrentStageIndex(stageIndex)
-
-    // 更新阶段状态
-    setWorkflowStages(prev =>
-      prev.map((stage, index) => ({
-        ...stage,
-        status: index === stageIndex ? 'in_progress' :
-                index < stageIndex ? 'completed' : 'pending'
-      }))
-    )
-
-    // 模拟AI生成阶段内容
-    setTimeout(() => {
-      generateStageContent(stageIndex)
-    }, 2000)
-  }
-
-  const generateStageContent = (stageIndex: number) => {
-    if (!courseInfo) return
-
-    const stage = workflowStages[stageIndex]
-    let generatedContent = ''
-
-    switch (stageIndex) {
-      case 0: // 项目基础定义
-        generatedContent = `# ${courseInfo.topic} - 项目基础定义
-
-## 项目概述
-**课程类型**: ${courseInfo.courseType}
-**目标学生**: ${courseInfo.studentAge}岁学生，约${courseInfo.studentCount}人
-**项目周期**: ${courseInfo.duration}
-
-## 驱动性问题
-基于"${courseInfo.topic}"主题的核心问题探究
-
-## 学习目标
-1. 知识目标：掌握${courseInfo.topic}相关的核心概念
-2. 技能目标：培养项目管理和团队协作能力
-3. 素养目标：形成可持续发展意识和创新思维
-
-## 项目成果
-学生将完成一个关于${courseInfo.topic}的实际项目作品
-
-${courseInfo.specialRequirements ? `## 特殊要求\n${courseInfo.specialRequirements}` : ''}`
-        break
-
-      case 1: // 评估框架
-        generatedContent = `# ${courseInfo.topic} - 评估框架设计
-
-## 评估维度
-1. **过程评估** (40%)
-   - 项目计划制定
-   - 团队协作表现
-   - 学习反思记录
-
-2. **成果评估** (40%)
-   - 项目作品质量
-   - 创新性和实用性
-   - 问题解决能力
-
-3. **展示评估** (20%)
-   - 成果展示效果
-   - 沟通表达能力
-   - 回答问题水平
-
-## 评估方法
-- 同伴互评
-- 自我评价
-- 教师观察
-- 专家点评
-
-## 评估时间节点
-- 项目启动期评估
-- 中期进展评估
-- 最终成果评估`
-        break
-
-      case 2: // 学习蓝图
-        generatedContent = `# ${courseInfo.topic} - 学习蓝图
-
-## 课程实施计划 (${courseInfo.duration})
-
-### 第1周：项目启动
-- 问题提出与分析
-- 团队组建
-- 初步调研
-
-### 第2-3周：深入探究
-- 资料收集与整理
-- 实地调研或实验
-- 方案设计
-
-### 第4周：项目实施
-- 原型制作或方案执行
-- 测试与改进
-- 成果完善
-
-### 最后周：展示评估
-- 成果展示准备
-- 项目答辩
-- 反思总结
-
-## 资源需求
-- 学习材料：相关书籍、视频资源
-- 技术工具：${courseInfo.courseType === 'STEM' ? '实验设备、计算机软件' : '创作工具、展示设备'}
-- 外部资源：专家指导、实践基地
-
-## 教师指导要点
-1. 问题引导而非直接给答案
-2. 及时反馈学生进展
-3. 促进团队协作
-4. 关注个体差异`
-        break
-    }
-
-    // 更新阶段内容
-    setWorkflowStages(prev =>
-      prev.map((s, index) =>
-        index === stageIndex
-          ? { ...s, content: generatedContent, status: 'completed' }
-          : s
-      )
-    )
-
-    // 显示确认对话框
-    setShowStageConfirmation(true)
-  }
-
-  const confirmStage = () => {
-    setShowStageConfirmation(false)
-
-    if (currentStageIndex < workflowStages.length - 1) {
-      // 进入下一阶段
-      setTimeout(() => {
-        startStage(currentStageIndex + 1)
-      }, 500)
-    } else {
-      // 所有阶段完成
-      console.log('Course creation completed!')
+      if (response.success && response.data) {
+        setStage1Data(response.data)
+        setStage1EditableContent(response.data.raw_content)
+        setStage1Status('completed')
+      } else {
+        setStage1Status('error')
+        setErrorMessage(response.error || '阶段1生成失败')
+      }
+    } catch (error) {
+      setStage1Status('error')
+      setErrorMessage(error instanceof Error ? error.message : '阶段1生成异常')
     }
   }
 
-  const modifyStage = () => {
-    setShowStageConfirmation(false)
-    // 这里可以打开编辑界面
-    console.log('Modify stage:', currentStageIndex)
+  const editStage1 = () => {
+    setStage1Status('editing')
   }
 
-  const getMainNodeTitle = () => {
-    return courseInfo ? `${courseInfo.topic} PBL课程研发任务` : '课程设计任务'
+  const confirmStage1 = () => {
+    setStage1Status('completed')
+    setCurrentStage(2)
   }
 
+  // ========== Stage 2: Assessment Framework ==========
+  const startStage2 = async () => {
+    if (!courseInfo || !stage1Data) return
+
+    setStage2Status('generating')
+    setErrorMessage(null)
+
+    try {
+      // Extract edited values from stage1
+      const drivingQuestion = stage1Data.driving_question
+      const projectDefinition = stage1Data.project_definition
+      const finalDeliverable = stage1Data.final_deliverable
+
+      const response = await apiService.generateStage2({
+        driving_question: drivingQuestion,
+        project_definition: projectDefinition,
+        final_deliverable: finalDeliverable,
+        course_topic: courseInfo.topic,
+        age_group: `${courseInfo.studentAge}岁`,
+        duration: courseInfo.duration
+      })
+
+      if (response.success && response.data) {
+        setStage2Data(response.data)
+        setStage2EditableContent(response.data.raw_content)
+        setStage2Status('completed')
+      } else {
+        setStage2Status('error')
+        setErrorMessage(response.error || '阶段2生成失败')
+      }
+    } catch (error) {
+      setStage2Status('error')
+      setErrorMessage(error instanceof Error ? error.message : '阶段2生成异常')
+    }
+  }
+
+  const editStage2 = () => {
+    setStage2Status('editing')
+  }
+
+  const confirmStage2 = () => {
+    setStage2Status('completed')
+    setCurrentStage(3)
+  }
+
+  // ========== Stage 3: Learning Blueprint ==========
+  const startStage3 = async () => {
+    if (!courseInfo || !stage1Data || !stage2Data) return
+
+    setStage3Status('generating')
+    setErrorMessage(null)
+
+    try {
+      const response = await apiService.generateStage3({
+        driving_question: stage1Data.driving_question,
+        project_definition: stage1Data.project_definition,
+        final_deliverable: stage1Data.final_deliverable,
+        rubric_markdown: stage2EditableContent, // Use edited content
+        evaluation_criteria: stage2Data.evaluation_criteria,
+        course_topic: courseInfo.topic,
+        age_group: `${courseInfo.studentAge}岁`,
+        duration: courseInfo.duration,
+        ai_tools: courseInfo.courseType === 'stem' ? 'Claude Code, 豆包, 秒哈' : '相关创作工具'
+      })
+
+      if (response.success && response.data) {
+        setStage3Data(response.data)
+        setStage3EditableContent(response.data.raw_content)
+        setStage3Status('completed')
+        setCurrentStage('complete')
+      } else {
+        setStage3Status('error')
+        setErrorMessage(response.error || '阶段3生成失败')
+      }
+    } catch (error) {
+      setStage3Status('error')
+      setErrorMessage(error instanceof Error ? error.message : '阶段3生成异常')
+    }
+  }
+
+  const editStage3 = () => {
+    setStage3Status('editing')
+  }
+
+  // ========== Export ==========
+  const exportCourse = () => {
+    if (!courseInfo) return
+
+    const fullContent = `# ${courseInfo.topic} - 完整PBL课程设计方案
+
+生成时间: ${new Date().toLocaleString('zh-CN')}
+
+---
+
+## 阶段1: 项目基础定义
+
+${stage1EditableContent}
+
+---
+
+## 阶段2: 评估框架设计
+
+${stage2EditableContent}
+
+---
+
+## 阶段3: 学习蓝图
+
+${stage3EditableContent}
+
+---
+
+**课程基本信息**
+- 课程类型: ${courseInfo.courseType}
+- 学生年龄: ${courseInfo.studentAge}岁
+- 学生人数: ${courseInfo.studentCount}人
+- 课程时长: ${courseInfo.duration}
+- 特殊要求: ${courseInfo.specialRequirements || '无'}
+`
+
+    const blob = new Blob([fullContent], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${courseInfo.topic}-PBL课程设计-${new Date().getTime()}.md`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  // ========== Map state to WorkflowStages format ==========
+  const workflowStages = useMemo(() => [
+    {
+      id: 'stage1',
+      name: '项目基础',
+      title: '阶段1: 项目基础定义',
+      description: '确定项目范围、目标和基本框架',
+      status: stage1Status === 'completed' ? 'completed' as const :
+              stage1Status === 'generating' || stage1Status === 'editing' ? 'in_progress' as const :
+              'pending' as const,
+      content: stage1EditableContent
+    },
+    {
+      id: 'stage2',
+      name: '评估框架',
+      title: '阶段2: 评估框架设计',
+      description: '设计评估标准和量规',
+      status: stage2Status === 'completed' ? 'completed' as const :
+              stage2Status === 'generating' || stage2Status === 'editing' ? 'in_progress' as const :
+              'pending' as const,
+      content: stage2EditableContent
+    },
+    {
+      id: 'stage3',
+      name: '学习蓝图',
+      title: '阶段3: 学习蓝图生成',
+      description: '生成详细的教学计划',
+      status: stage3Status === 'completed' ? 'completed' as const :
+              stage3Status === 'generating' || stage3Status === 'editing' ? 'in_progress' as const :
+              'pending' as const,
+      content: stage3EditableContent
+    }
+  ], [stage1Status, stage1EditableContent, stage2Status, stage2EditableContent, stage3Status, stage3EditableContent])
+
+  // ========== Render ==========
   if (!courseInfo) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -268,99 +287,67 @@ ${courseInfo.specialRequirements ? `## 特殊要求\n${courseInfo.specialRequire
               课程设计工作台 - {courseInfo.topic}
             </h1>
           </div>
-
-          {/* Workflow Progress */}
-          <div className="flex items-center space-x-4">
-            {workflowStages.map((stage, index) => (
-              <div key={stage.id} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                  stage.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  stage.status === 'in_progress' ? 'bg-indigo-100 text-indigo-800' :
-                  'bg-gray-100 text-gray-500'
-                }`}>
-                  {stage.status === 'completed' ? (
-                    <CheckCircle className="w-4 h-4" />
-                  ) : (
-                    index + 1
-                  )}
-                </div>
-                <span className="ml-2 text-sm text-gray-600">{stage.name}</span>
-                {index < workflowStages.length - 1 && (
-                  <div className="mx-3 w-8 h-px bg-gray-300" />
-                )}
-              </div>
-            ))}
+          <div className="text-sm text-gray-600">
+            {currentStage === 'complete' ? '已完成' : `阶段 ${currentStage}`}
           </div>
-
-          {!isWorkflowStarted && (
-            <button
-              onClick={startWorkflow}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
-            >
-              <Play className="w-4 h-4" />
-              <span>开始工作流</span>
-            </button>
-          )}
         </div>
       </header>
 
-      <div className="flex-1 flex">
-        {/* Canvas Area */}
+      {/* Main Layout: Canvas (left) + Workflow Sidebar (right) */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: Infinite Canvas */}
         <div className="flex-1 relative">
           <InfiniteCanvas
-            mainNodeTitle={getMainNodeTitle()}
+            mainNodeTitle={`${courseInfo.topic} PBL课程`}
             workflowStages={workflowStages}
           />
         </div>
 
-        {/* Chat Sidebar */}
-        {isChatOpen && (
-          <div className="w-96 border-l border-gray-200">
-            <ChatSidebar />
-          </div>
-        )}
+        {/* Right: Workflow Sidebar */}
+        <WorkflowSidebar
+          stages={[
+            {
+              number: 1,
+              name: '项目基础定义',
+              status: stage1Status,
+              content: stage1EditableContent,
+              onStart: startStage1,
+              onEdit: editStage1,
+              onConfirm: confirmStage1,
+              onContentChange: setStage1EditableContent,
+              errorMessage: stage1Status === 'error' ? errorMessage || undefined : undefined
+            },
+            {
+              number: 2,
+              name: '评估框架设计',
+              status: stage2Status,
+              content: stage2EditableContent,
+              onStart: startStage2,
+              onEdit: editStage2,
+              onConfirm: confirmStage2,
+              onContentChange: setStage2EditableContent,
+              errorMessage: stage2Status === 'error' ? errorMessage || undefined : undefined
+            },
+            {
+              number: 3,
+              name: '学习蓝图生成',
+              status: stage3Status,
+              content: stage3EditableContent,
+              onStart: startStage3,
+              onEdit: editStage3,
+              onConfirm: () => {
+                setStage3Status('completed')
+                setCurrentStage('complete')
+              },
+              onContentChange: setStage3EditableContent,
+              errorMessage: stage3Status === 'error' ? errorMessage || undefined : undefined
+            }
+          ]}
+          currentStage={currentStage}
+          onExport={exportCourse}
+          courseTitle={courseInfo.topic}
+        />
       </div>
-
-      {/* Stage Confirmation Modal */}
-      {showStageConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center space-x-3 mb-4">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                {workflowStages[currentStageIndex]?.title} 已完成
-              </h3>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-gray-600 mb-4">
-                AI已为您生成了本阶段的内容。请查看以下内容是否满足您的需求：
-              </p>
-
-              <div className="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
-                <pre className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {workflowStages[currentStageIndex]?.content}
-                </pre>
-              </div>
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                onClick={modifyStage}
-                className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                修改内容
-              </button>
-              <button
-                onClick={confirmStage}
-                className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                {currentStageIndex < workflowStages.length - 1 ? '确认并继续下一阶段' : '确认完成'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

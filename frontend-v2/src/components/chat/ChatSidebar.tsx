@@ -38,7 +38,7 @@ export function ChatSidebar() {
 
     // Call real backend API
     try {
-      const response = await fetch('http://127.0.0.1:8001/api/v1/chat', {
+      const response = await fetch('http://localhost:8888/api/v1/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

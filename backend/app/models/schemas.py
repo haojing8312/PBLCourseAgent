@@ -76,3 +76,69 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="用户消息")
     context: Optional[str] = Field(None, description="对话上下文")
     session_id: Optional[str] = Field(None, description="会话ID")
+
+
+# ========== 分阶段生成的新Schema ==========
+
+class Stage1Input(BaseModel):
+    """阶段1输入 - 项目基础定义"""
+    course_topic: str = Field(..., description="课程主题")
+    course_overview: str = Field(..., description="课程概要")
+    age_group: str = Field(..., description="年龄段")
+    duration: str = Field(..., description="课程时长")
+    ai_tools: str = Field(..., description="核心AI工具/技能")
+
+
+class Stage1Output(BaseModel):
+    """阶段1输出 - 项目基础定义"""
+    driving_question: str = Field(..., description="驱动性问题")
+    project_definition: str = Field(..., description="项目定义")
+    final_deliverable: str = Field(..., description="最终公开成果")
+    cover_page: str = Field(..., description="封面页信息（Markdown格式）")
+    raw_content: str = Field(..., description="原始AI生成内容")
+    generation_time: float = Field(..., description="生成耗时（秒）")
+
+
+class Stage2Input(BaseModel):
+    """阶段2输入 - 评估框架设计"""
+    # 来自阶段1的输出（可能被用户修改）
+    driving_question: str = Field(..., description="驱动性问题")
+    project_definition: str = Field(..., description="项目定义")
+    final_deliverable: str = Field(..., description="最终公开成果")
+    # 原始课程信息
+    course_topic: str = Field(..., description="课程主题")
+    age_group: str = Field(..., description="年龄段")
+    duration: str = Field(..., description="课程时长")
+
+
+class Stage2Output(BaseModel):
+    """阶段2输出 - 评估框架"""
+    rubric_markdown: str = Field(..., description="评估量规（Markdown格式）")
+    evaluation_criteria: str = Field(..., description="评估标准")
+    raw_content: str = Field(..., description="原始AI生成内容")
+    generation_time: float = Field(..., description="生成耗时（秒）")
+
+
+class Stage3Input(BaseModel):
+    """阶段3输入 - 学习蓝图生成"""
+    # 来自阶段1
+    driving_question: str = Field(..., description="驱动性问题")
+    project_definition: str = Field(..., description="项目定义")
+    final_deliverable: str = Field(..., description="最终公开成果")
+    # 来自阶段2（可能被用户修改）
+    rubric_markdown: str = Field(..., description="评估量规")
+    evaluation_criteria: str = Field(..., description="评估标准")
+    # 原始课程信息
+    course_topic: str = Field(..., description="课程主题")
+    age_group: str = Field(..., description="年龄段")
+    duration: str = Field(..., description="课程时长")
+    ai_tools: str = Field(..., description="核心AI工具/技能")
+
+
+class Stage3Output(BaseModel):
+    """阶段3输出 - 学习蓝图"""
+    day_by_day_plan: str = Field(..., description="逐日教学计划（Markdown格式）")
+    activities_summary: str = Field(..., description="活动总结")
+    materials_list: str = Field(..., description="所需材料清单")
+    raw_content: str = Field(..., description="原始AI生成内容")
+    generation_time: float = Field(..., description="生成耗时（秒）")

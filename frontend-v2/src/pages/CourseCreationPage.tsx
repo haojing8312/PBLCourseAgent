@@ -84,7 +84,8 @@ export function CourseCreationPage() {
       '明白了！这个课程计划持续多长时间？例如："4周"、"一个学期"、"2个月"等。',
       '最后一个问题：对这个课程有什么特殊要求吗？比如特定的技术设备、实验环境、合作伙伴等。如果没有特殊要求，可以回复"无"。'
     ]
-    return prompts[step] || ''
+    // step 1->0, step 2->1, 等等，因为step 0是课程类型（初始消息）
+    return prompts[step - 1] || ''
   }
 
   const processUserInput = (userInput: string) => {
@@ -100,9 +101,10 @@ export function CourseCreationPage() {
       }))
 
       if (currentStep < stepKeys.length - 1) {
-        setCurrentStep(prev => prev + 1)
+        const nextStep = currentStep + 1
+        setCurrentStep(nextStep)
         setTimeout(() => {
-          addMessage('assistant', getNextQuestionPrompt(currentStep + 1))
+          addMessage('assistant', getNextQuestionPrompt(nextStep))
         }, 500)
       } else {
         setIsCollectionComplete(true)

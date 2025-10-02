@@ -177,7 +177,7 @@ export class WorkflowService {
   }
 
   /**
-   * Execute the PBL workflow by calling the backend API
+   * Execute the PBL workflow by calling the backend API (without canvas dependency)
    */
   async executePBLWorkflow(courseInput: {
     course_topic: string
@@ -185,17 +185,20 @@ export class WorkflowService {
     age_group: string
     duration: string
     ai_tools: string
-  }): Promise<void> {
-    if (!this.editorInstance) {
-      throw new Error('Editor not initialized')
-    }
-
+  }): Promise<{
+    success: boolean
+    data?: any
+    message?: string
+    error?: string
+  }> {
     try {
-      // Update input node to in_progress
-      await this.updateNodeStatus('input-node', 'in_progress')
+      // Update canvas nodes if editor is available (optional)
+      if (this.editorInstance) {
+        await this.updateNodeStatus('input-node', 'in_progress')
+      }
 
       // Call the backend API
-      const response = await fetch('http://localhost:8001/api/v1/generate', {
+      const response = await fetch('http://localhost:8888/api/v1/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,44 +206,46 @@ export class WorkflowService {
         body: JSON.stringify(courseInput)
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const result = await response.json()
 
       if (result.success) {
-        // Mark input as completed
-        await this.updateNodeStatus('input-node', 'completed')
+        // Update canvas nodes if editor is available (optional)
+        if (this.editorInstance) {
+          await this.updateNodeStatus('input-node', 'completed')
+          await this.updateNodeStatus('agent1-node', 'completed')
+          await this.updateNodeStatus('agent2-node', 'completed')
+          await this.updateNodeStatus('agent3-node', 'completed')
+          await this.updateNodeStatus('output-node', 'completed')
+        }
 
-        // Simulate progressive workflow execution
-        await this.simulateWorkflowProgress()
+        return {
+          success: true,
+          data: result.data,
+          message: result.message
+        }
       } else {
-        await this.updateNodeStatus('input-node', 'error')
-        throw new Error(result.message || 'Workflow execution failed')
+        if (this.editorInstance) {
+          await this.updateNodeStatus('input-node', 'error')
+        }
+        return {
+          success: false,
+          error: result.error || result.message || 'Workflow execution failed'
+        }
       }
     } catch (error) {
       console.error('Workflow execution error:', error)
-      await this.updateNodeStatus('input-node', 'error')
-      throw error
+      if (this.editorInstance) {
+        await this.updateNodeStatus('input-node', 'error')
+      }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
     }
-  }
-
-  /**
-   * Simulate progressive workflow execution for demonstration
-   */
-  private async simulateWorkflowProgress(): Promise<void> {
-    const agentNodes = ['agent1-node', 'agent2-node', 'agent3-node']
-
-    for (const nodeId of agentNodes) {
-      // Mark as in progress
-      await this.updateNodeStatus(nodeId, 'in_progress')
-
-      // Wait 2 seconds to simulate processing
-      await new Promise(resolve => setTimeout(resolve, 2000))
-
-      // Mark as completed
-      await this.updateNodeStatus(nodeId, 'completed')
-    }
-
-    // Finally complete the output node
-    await this.updateNodeStatus('output-node', 'completed')
   }
 }
 
