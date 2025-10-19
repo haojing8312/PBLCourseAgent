@@ -1,0 +1,3 @@
+[submodule "jaaz"]
+	path = jaaz
+	url = https://github.com/11cafe/jaaz.git
