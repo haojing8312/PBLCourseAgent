@@ -55,7 +55,14 @@
       "Bash(grep:*)",
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
-      "Bash(echo $PBL_AI_API_KEY)"
+      "Bash(echo $PBL_AI_API_KEY)",
+      "WebFetch(domain:github.com)",
+      "Bash(git clone:*)",
+      "Read(//e/code/yzpd/**)",
+      "Bash(claude --resume)",
+      "Bash(.venv/Scripts/python.exe -m pytest tests/test_ubd_integration.py -v)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []
