@@ -119,14 +119,14 @@ function App() {
     // 保存到Store
     setCourseInfo(courseData);
 
-    // 构建工作流请求
+    // 构建工作流请求 - 只生成Stage 1，用户确认后再生成后续阶段
     const workflowRequest: WorkflowRequest = {
       title: values.title,
       subject: values.subject,
       grade_level: values.gradeLevel,
       duration_weeks: values.durationWeeks,
       description: values.description,
-      stages_to_generate: [1, 2, 3], // 生成所有三个阶段
+      stages_to_generate: [1], // 只生成Stage 1，符合UbD逆向设计的理念
     };
 
     // 关闭对话框
@@ -221,6 +221,37 @@ function App() {
     }
   };
 
+  /**
+   * 生成指定阶段
+   */
+  const handleGenerateStage = async (stage: number) => {
+    if (!courseInfo) {
+      message.error('课程信息不完整');
+      return;
+    }
+
+    // 构建工作流请求
+    const workflowRequest: WorkflowRequest = {
+      title: courseInfo.title,
+      subject: courseInfo.subject,
+      grade_level: courseInfo.gradeLevel,
+      duration_weeks: courseInfo.durationWeeks || 12,
+      description: courseInfo.description,
+      stages_to_generate: [stage], // 只生成当前阶段
+      // 如果生成Stage 2或3，需要提供前置阶段的数据
+      stage_one_data: stage >= 2 ? stageOneData || undefined : undefined,
+      stage_two_data: stage >= 3 ? stageTwoData || undefined : undefined,
+    };
+
+    try {
+      message.info(`开始生成 Stage ${stage}...`);
+      await startWorkflow(workflowRequest);
+      message.success(`Stage ${stage} 生成完成！`);
+    } catch (error) {
+      message.error(`Stage ${stage} 生成失败，请重试`);
+    }
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* 顶部导航栏 */}
@@ -272,7 +303,7 @@ function App() {
       {/* 步骤导航器 - 仅在课程视图显示 */}
       {viewMode === 'course' && (
         <div style={{ background: '#fff', padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
-          <StepNavigator allowStepChange={true} />
+          <StepNavigator allowStepChange={true} onGenerateStage={handleGenerateStage} />
         </div>
       )}
 
