@@ -31,6 +31,12 @@ export interface ContentPanelProps {
   /** 切换编辑模式 */
   onToggleEdit?: () => void;
 
+  /** 生成下一阶段的回调 */
+  onGenerateNextStage?: () => void;
+
+  /** 是否正在生成 */
+  isGenerating?: boolean;
+
   /** 自定义样式 */
   style?: React.CSSProperties;
 }
@@ -57,8 +63,26 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
   stageThreeData,
   isEditMode = false,
   onToggleEdit,
+  onGenerateNextStage,
+  isGenerating = false,
   style,
 }) => {
+  /**
+   * 获取当前阶段的数据（用于判断是否已生成）
+   */
+  const getCurrentStageData = () => {
+    switch (currentStep) {
+      case 1:
+        return stageOneData;
+      case 2:
+        return stageTwoData;
+      case 3:
+        return stageThreeData;
+      default:
+        return null;
+    }
+  };
+
   /**
    * 渲染Stage One内容 (G/U/Q/K/S)
    */
@@ -437,15 +461,31 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
     <Card
       title={`Stage ${currentStep} - UbD ${['确定预期学习结果', '确定可接受的证据', '规划学习体验'][currentStep - 1]}`}
       extra={
-        onToggleEdit && (
-          <Button
-            type="text"
-            icon={isEditMode ? <EyeOutlined /> : <EditOutlined />}
-            onClick={onToggleEdit}
-          >
-            {isEditMode ? '查看模式' : '编辑模式'}
-          </Button>
-        )
+        <Space>
+          {onToggleEdit && (
+            <Button
+              type="text"
+              icon={isEditMode ? <EyeOutlined /> : <EditOutlined />}
+              onClick={onToggleEdit}
+            >
+              {isEditMode ? '查看模式' : '编辑模式'}
+            </Button>
+          )}
+          {/* 开始下一阶段按钮 */}
+          {onGenerateNextStage && currentStep < 3 && getCurrentStageData() && (
+            <Tooltip title={`当前阶段已完成，点击生成${['阶段二', '阶段三'][currentStep - 1]}`}>
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={onGenerateNextStage}
+                loading={isGenerating}
+                disabled={isGenerating}
+              >
+                开始{['阶段二', '阶段三'][currentStep - 1]}
+              </Button>
+            </Tooltip>
+          )}
+        </Space>
       }
       style={{ height: '100%', ...style }}
       styles={{ body: { overflowY: 'auto', padding: '24px' } }}

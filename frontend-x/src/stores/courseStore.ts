@@ -1,13 +1,11 @@
 /**
- * 课程项目状态管理 - Zustand Store
+ * 课程项目状态管理 - Zustand Store (Markdown版本)
  * 管理当前课程的完整状态和工作流进度
+ * 直接存储markdown字符串而非JSON对象
  */
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type {
-  StageOneData,
-  StageTwoData,
-  StageThreeData,
   ConversationMessage,
 } from '../types/course';
 
@@ -50,19 +48,15 @@ interface CourseState {
   stepStatus: Record<number, StepStatus>; // 每个步骤的状态
   setStepStatus: (step: number, status: StepStatus) => void;
 
-  // === 三阶段数据 ===
-  stageOneData: StageOneData | null;
-  setStageOneData: (data: StageOneData) => void;
+  // === 三阶段数据 (Markdown格式) ===
+  stageOneData: string | null;
+  setStageOneData: (markdown: string) => void;
 
-  stageTwoData: StageTwoData | null;
-  setStageTwoData: (data: StageTwoData) => void;
+  stageTwoData: string | null;
+  setStageTwoData: (markdown: string) => void;
 
-  stageThreeData: StageThreeData | null;
-  setStageThreeData: (data: StageThreeData) => void;
-
-  // === Markdown内容（用于编辑预览） ===
-  stageMarkdowns: Record<number, string>; // 每个阶段的Markdown内容
-  setStageMarkdown: (step: number, markdown: string) => void;
+  stageThreeData: string | null;
+  setStageThreeData: (markdown: string) => void;
 
   // === 编辑模式 ===
   isEditMode: boolean;
@@ -114,7 +108,6 @@ export const useCourseStore = create<CourseState>()(
         stageOneData: null,
         stageTwoData: null,
         stageThreeData: null,
-        stageMarkdowns: {},
         isEditMode: false,
         conversationHistory: [],
         isGenerating: false,
@@ -132,28 +125,23 @@ export const useCourseStore = create<CourseState>()(
             stepStatus: { ...state.stepStatus, [step]: status },
           })),
 
-        setStageOneData: (data) =>
+        setStageOneData: (markdown) =>
           set({
-            stageOneData: data,
+            stageOneData: markdown,
             stepStatus: { ...get().stepStatus, 1: 'completed' },
           }),
 
-        setStageTwoData: (data) =>
+        setStageTwoData: (markdown) =>
           set({
-            stageTwoData: data,
+            stageTwoData: markdown,
             stepStatus: { ...get().stepStatus, 2: 'completed' },
           }),
 
-        setStageThreeData: (data) =>
+        setStageThreeData: (markdown) =>
           set({
-            stageThreeData: data,
+            stageThreeData: markdown,
             stepStatus: { ...get().stepStatus, 3: 'completed' },
           }),
-
-        setStageMarkdown: (step, markdown) =>
-          set((state) => ({
-            stageMarkdowns: { ...state.stageMarkdowns, [step]: markdown },
-          })),
 
         setEditMode: (mode) => set({ isEditMode: mode }),
 
@@ -200,7 +188,6 @@ export const useCourseStore = create<CourseState>()(
             stageOneData: null,
             stageTwoData: null,
             stageThreeData: null,
-            stageMarkdowns: {},
             isEditMode: false,
             conversationHistory: [],
             isGenerating: false,
@@ -219,7 +206,6 @@ export const useCourseStore = create<CourseState>()(
           stageOneData: state.stageOneData,
           stageTwoData: state.stageTwoData,
           stageThreeData: state.stageThreeData,
-          stageMarkdowns: state.stageMarkdowns,
           conversationHistory: state.conversationHistory,
           stageVersions: state.stageVersions,
         }),

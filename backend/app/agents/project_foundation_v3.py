@@ -1,8 +1,8 @@
 """
 Agent 1 V3: ProjectFoundationAgent - The Strategist
 UbD Stage One: 确定预期学习结果 (G/U/Q/K/S框架)
+Markdown版本 - 直接生成Markdown文档
 """
-import json
 import time
 from typing import Dict, Any
 from pathlib import Path
@@ -16,14 +16,15 @@ logger = logging.getLogger(__name__)
 
 class ProjectFoundationAgentV3:
     """
-    项目基础定义Agent V3
+    项目基础定义Agent V3 - Markdown版
     实现UbD Stage One: Desired Results (G/U/Q/K/S)
+    直接生成Markdown格式文档，无需JSON解析
     """
 
     def __init__(self):
         self.agent_name = "The Strategist"
         self.timeout = settings.agent1_timeout or 30
-        self.phr_version = "v2.0"
+        self.phr_version = "v3.0-markdown"
 
     def _load_phr_prompt(self) -> str:
         """
@@ -36,12 +37,12 @@ class ProjectFoundationAgentV3:
             Path(__file__).parent.parent
             / "prompts"
             / "phr"
-            / "project_foundation_v2.md"
+            / "project_foundation_v3_markdown.md"
         )
 
         if not phr_path.exists():
             logger.error(f"PHR file not found: {phr_path}")
-            raise FileNotFoundError(f"PHR v2 prompt file not found: {phr_path}")
+            raise FileNotFoundError(f"PHR v3-markdown prompt file not found: {phr_path}")
 
         with open(phr_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -62,7 +63,7 @@ class ProjectFoundationAgentV3:
                 raise ValueError("End of System Prompt not found")
 
             system_prompt = content[start_idx:end_idx].strip()
-            logger.info(f"Loaded PHR v2 prompt ({len(system_prompt)} chars)")
+            logger.info(f"Loaded PHR v3-markdown prompt ({len(system_prompt)} chars)")
             return system_prompt
 
         except Exception as e:
@@ -73,7 +74,7 @@ class ProjectFoundationAgentV3:
         """
         构建系统提示词
 
-        Prompt版本: backend/app/prompts/phr/project_foundation_v2.md
+        Prompt版本: backend/app/prompts/phr/project_foundation_v3_markdown.md
         """
         return self._load_phr_prompt()
 
@@ -86,7 +87,7 @@ class ProjectFoundationAgentV3:
         description: str = "",
     ) -> str:
         """
-        构建用户提示词
+        构建用户提示词 - Markdown版本
 
         Args:
             title: 课程名称
@@ -95,26 +96,22 @@ class ProjectFoundationAgentV3:
             duration_weeks: 课程时长（周）
             description: 课程简介
         """
-        user_input_json = {
-            "title": title,
-            "subject": subject or "未指定",
-            "grade_level": grade_level or "未指定",
-            "duration_weeks": duration_weeks,
-            "description": description or "",
-        }
-
         return f"""# USER INPUT
-{json.dumps(user_input_json, ensure_ascii=False, indent=2)}
+课程名称: {title}
+学科领域: {subject or "未指定"}
+年级水平: {grade_level or "未指定"}
+课程时长: {duration_weeks}周
+课程简介: {description or "无"}
 
-请基于以上课程信息，生成符合UbD框架的阶段一：确定预期学习结果。
+请基于以上课程信息，生成符合UbD框架的"阶段一：确定预期学习结果"的完整Markdown文档。
 
-严格遵循G/U/Q/K/S的区分标准，特别注意：
-1. U必须是抽象的big ideas，不是具体知识点或技能
-2. 每个U包含rationale字段解释为什么这是持续理解
-3. K是"知道什么"，S是"会做什么"，两者不可混淆
-4. Q应该是开放性问题，引导学生走向U
+要求：
+1. 严格遵循上述模板结构
+2. 确保G/U/Q/K/S的内容质量符合指南要求
+3. 内容符合目标年龄段的认知水平
+4. 直接输出Markdown内容，不要任何包裹或额外说明
 
-直接返回JSON格式，不要任何额外说明。"""
+开始生成："""
 
     async def generate(
         self,
@@ -125,7 +122,7 @@ class ProjectFoundationAgentV3:
         description: str = "",
     ) -> Dict[str, Any]:
         """
-        生成Stage One数据 (G/U/Q/K/S)
+        生成Stage One的Markdown文档 (G/U/Q/K/S)
 
         Args:
             title: 课程名称
@@ -137,13 +134,7 @@ class ProjectFoundationAgentV3:
         Returns:
             {
                 "success": bool,
-                "data": {
-                    "goals": [...],
-                    "understandings": [...],
-                    "questions": [...],
-                    "knowledge": [...],
-                    "skills": [...]
-                },
+                "markdown": str,  # Markdown文档字符串
                 "generation_time": float,
                 "model": str,
                 "error": str (if failed)
@@ -152,7 +143,7 @@ class ProjectFoundationAgentV3:
         start_time = time.time()
 
         try:
-            logger.info(f"Generating Stage One for: {title}")
+            logger.info(f"Generating Stage One Markdown for: {title}")
 
             system_prompt = self._build_system_prompt()
             user_prompt = self._build_user_prompt(
@@ -181,47 +172,32 @@ class ProjectFoundationAgentV3:
                     "model": model,
                 }
 
-            # 解析JSON响应
-            try:
-                content = response["content"]
-                # 尝试提取JSON（如果被markdown包裹）
-                if "```json" in content:
-                    json_start = content.find("```json") + 7
-                    json_end = content.find("```", json_start)
-                    content = content[json_start:json_end].strip()
-                elif "```" in content:
-                    json_start = content.find("```") + 3
-                    json_end = content.find("```", json_start)
-                    content = content[json_start:json_end].strip()
+            # 直接返回Markdown内容，无需JSON解析
+            markdown_content = response["content"].strip()
 
-                stage_one_data = json.loads(content)
+            # 移除可能的markdown代码块包裹
+            if markdown_content.startswith("```markdown"):
+                markdown_content = markdown_content[11:].strip()
+                if markdown_content.endswith("```"):
+                    markdown_content = markdown_content[:-3].strip()
+            elif markdown_content.startswith("```"):
+                markdown_content = markdown_content[3:].strip()
+                if markdown_content.endswith("```"):
+                    markdown_content = markdown_content[:-3].strip()
 
-                logger.info(
-                    f"Stage One generated successfully in {generation_time:.2f}s"
-                )
-                logger.info(
-                    f"Generated: {len(stage_one_data.get('understandings', []))} U, "
-                    f"{len(stage_one_data.get('knowledge', []))} K, "
-                    f"{len(stage_one_data.get('skills', []))} S"
-                )
+            logger.info(
+                f"Stage One Markdown generated successfully in {generation_time:.2f}s"
+            )
+            logger.info(
+                f"Generated markdown length: {len(markdown_content)} characters"
+            )
 
-                return {
-                    "success": True,
-                    "data": stage_one_data,
-                    "generation_time": generation_time,
-                    "model": model,
-                }
-
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON parsing failed: {e}")
-                logger.error(f"Raw content: {response['content'][:500]}...")
-                return {
-                    "success": False,
-                    "error": f"Failed to parse AI response as JSON: {str(e)}",
-                    "generation_time": generation_time,
-                    "model": model,
-                    "raw_content": response["content"],
-                }
+            return {
+                "success": True,
+                "markdown": markdown_content,
+                "generation_time": generation_time,
+                "model": model,
+            }
 
         except Exception as e:
             logger.error(f"Agent execution failed: {e}", exc_info=True)

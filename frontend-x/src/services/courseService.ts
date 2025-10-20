@@ -3,7 +3,7 @@
  * 处理课程项目的创建、读取、更新、删除
  */
 
-import type { CourseProject, StageOneData, StageTwoData, StageThreeData } from '../types/course';
+import type { CourseProject } from '../types/course';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 

@@ -148,25 +148,25 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
           console.log('[useStepWorkflow] Stage complete:', data);
 
           const stage = data.stage;
-          const result = data.result;
+          const markdown = data.markdown;
 
-          if (!stage || !result) {
-            console.warn('[useStepWorkflow] Missing stage or result in event:', data);
+          if (!stage || !markdown) {
+            console.warn('[useStepWorkflow] Missing stage or markdown in event:', data);
             return;
           }
 
-          // 更新对应阶段的前端Store数据
+          // 更新对应阶段的前端Store数据（存储markdown字符串）
           switch (stage) {
             case 1:
-              setStageOneData(result);
+              setStageOneData(markdown);
               updateStageVersion(1);
               break;
             case 2:
-              setStageTwoData(result);
+              setStageTwoData(markdown);
               updateStageVersion(2);
               break;
             case 3:
-              setStageThreeData(result);
+              setStageThreeData(markdown);
               updateStageVersion(3);
               break;
             default:
@@ -178,16 +178,16 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
             try {
               switch (stage) {
                 case 1:
-                  await updateStageOne(courseId, result);
-                  console.log('[useStepWorkflow] Stage 1 saved to database');
+                  await updateStageOne(courseId, markdown);
+                  console.log('[useStepWorkflow] Stage 1 markdown saved to database');
                   break;
                 case 2:
-                  await updateStageTwo(courseId, result);
-                  console.log('[useStepWorkflow] Stage 2 saved to database');
+                  await updateStageTwo(courseId, markdown);
+                  console.log('[useStepWorkflow] Stage 2 markdown saved to database');
                   break;
                 case 3:
-                  await updateStageThree(courseId, result);
-                  console.log('[useStepWorkflow] Stage 3 saved to database');
+                  await updateStageThree(courseId, markdown);
+                  console.log('[useStepWorkflow] Stage 3 markdown saved to database');
                   break;
               }
             } catch (saveError) {
@@ -200,16 +200,6 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
 
           // 标记为完成
           setStepStatus(stage, 'completed');
-
-          // 显示验证结果（如果有）
-          if (data.validation) {
-            const { overall_valid, avg_score, warnings } = data.validation;
-            console.log(`[useStepWorkflow] Stage ${stage} validation:`, {
-              valid: overall_valid,
-              score: avg_score,
-              warnings,
-            });
-          }
         },
 
         onError: (data) => {

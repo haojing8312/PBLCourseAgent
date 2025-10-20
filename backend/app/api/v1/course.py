@@ -40,9 +40,9 @@ class CourseUpdateRequest(BaseModel):
 
 
 class StageDataUpdate(BaseModel):
-    """更新Stage数据"""
+    """更新Stage数据 - Markdown版本"""
 
-    data: Dict[str, Any] = Field(..., description="Stage数据JSON")
+    markdown: str = Field(..., description="Stage数据Markdown文本")
 
 
 class ConversationMessage(BaseModel):
@@ -60,7 +60,7 @@ class ConversationAddRequest(BaseModel):
 
 
 class CourseResponse(BaseModel):
-    """课程响应"""
+    """课程响应 - Markdown版本"""
 
     id: int
     title: str
@@ -68,9 +68,9 @@ class CourseResponse(BaseModel):
     grade_level: Optional[str]
     duration_weeks: Optional[int]
     description: Optional[str]
-    stage_one_data: Optional[Dict[str, Any]]
-    stage_two_data: Optional[Dict[str, Any]]
-    stage_three_data: Optional[Dict[str, Any]]
+    stage_one_data: Optional[str]  # Markdown字符串
+    stage_two_data: Optional[str]  # Markdown字符串
+    stage_three_data: Optional[str]  # Markdown字符串
     conversation_history: Optional[List[Dict[str, Any]]]
     stage_one_version: Optional[datetime]
     stage_two_version: Optional[datetime]
@@ -215,7 +215,7 @@ def update_stage_one(
     course_id: int, request: StageDataUpdate, db: Session = Depends(get_db)
 ):
     """
-    更新Stage One数据 (G/U/Q/K/S)
+    更新Stage One数据 (Markdown格式)
     """
     course = db.query(CourseProject).filter(CourseProject.id == course_id).first()
 
@@ -225,11 +225,11 @@ def update_stage_one(
         )
 
     try:
-        course.stage_one_data = request.data
+        course.stage_one_data = request.markdown
         course.stage_one_version = datetime.utcnow()
         db.commit()
         db.refresh(course)
-        logger.info(f"Updated stage one for course: {course_id}")
+        logger.info(f"Updated stage one (Markdown) for course: {course_id}, length: {len(request.markdown)}")
         return course
 
     except Exception as e:
@@ -246,7 +246,7 @@ def update_stage_two(
     course_id: int, request: StageDataUpdate, db: Session = Depends(get_db)
 ):
     """
-    更新Stage Two数据 (驱动性问题 + 表现性任务)
+    更新Stage Two数据 (Markdown格式)
     """
     course = db.query(CourseProject).filter(CourseProject.id == course_id).first()
 
@@ -256,11 +256,11 @@ def update_stage_two(
         )
 
     try:
-        course.stage_two_data = request.data
+        course.stage_two_data = request.markdown
         course.stage_two_version = datetime.utcnow()
         db.commit()
         db.refresh(course)
-        logger.info(f"Updated stage two for course: {course_id}")
+        logger.info(f"Updated stage two (Markdown) for course: {course_id}, length: {len(request.markdown)}")
         return course
 
     except Exception as e:
@@ -277,7 +277,7 @@ def update_stage_three(
     course_id: int, request: StageDataUpdate, db: Session = Depends(get_db)
 ):
     """
-    更新Stage Three数据 (PBL学习蓝图)
+    更新Stage Three数据 (Markdown格式)
     """
     course = db.query(CourseProject).filter(CourseProject.id == course_id).first()
 
@@ -287,11 +287,11 @@ def update_stage_three(
         )
 
     try:
-        course.stage_three_data = request.data
+        course.stage_three_data = request.markdown
         course.stage_three_version = datetime.utcnow()
         db.commit()
         db.refresh(course)
-        logger.info(f"Updated stage three for course: {course_id}")
+        logger.info(f"Updated stage three (Markdown) for course: {course_id}, length: {len(request.markdown)}")
         return course
 
     except Exception as e:

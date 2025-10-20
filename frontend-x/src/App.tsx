@@ -317,6 +317,24 @@ function App() {
   };
 
   /**
+   * 生成下一阶段并跳转
+   */
+  const handleGenerateNextStage = async () => {
+    const nextStep = currentStep + 1;
+
+    if (nextStep > 3) {
+      message.warning('已经是最后一个阶段了');
+      return;
+    }
+
+    // 先跳转到下一阶段
+    useCourseStore.getState().setCurrentStep(nextStep);
+
+    // 然后生成内容
+    await handleGenerateStage(nextStep);
+  };
+
+  /**
    * 渲染Header中间区域（步骤导航）
    */
   const renderHeaderCenter = () => {
@@ -436,6 +454,8 @@ function App() {
               stageThreeData={stageThreeData || undefined}
               isEditMode={isEditMode}
               onToggleEdit={handleToggleEdit}
+              onGenerateNextStage={handleGenerateNextStage}
+              isGenerating={isGenerating}
               style={{ flex: 1, minHeight: 0 }}
             />
           )}

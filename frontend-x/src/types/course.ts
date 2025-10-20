@@ -125,10 +125,10 @@ export interface CourseProject {
   duration_weeks: number;
   description?: string;
 
-  // UbD三阶段数据
-  stage_one_data?: StageOneData;
-  stage_two_data?: StageTwoData;
-  stage_three_data?: StageThreeData;
+  // UbD三阶段数据 - Markdown版本
+  stage_one_data?: string;  // Markdown文本
+  stage_two_data?: string;  // Markdown文本
+  stage_three_data?: string;  // Markdown文本
 
   // 对话历史
   conversation_history?: ConversationMessage[];
@@ -162,18 +162,13 @@ export interface SSEEvent {
     stage?: number;
     progress?: number;
     message?: string;
-    result?: StageOneData | StageTwoData | StageThreeData;
-    validation?: {
-      overall_valid: boolean;
-      avg_score: number;
-      warnings: string[];
-    };
+    markdown?: string;  // Markdown文本（替代result）
     generation_time?: number;
     total_time?: number;
     summary?: {
-      stage_one?: { goals: number; understandings: number; questions: number; knowledge: number; skills: number };
-      stage_two?: { performance_tasks: number };
-      stage_three?: { pbl_phases: number };
+      stage_one?: { markdown_length: number };
+      stage_two?: { markdown_length: number };
+      stage_three?: { markdown_length: number };
     };
   };
 }

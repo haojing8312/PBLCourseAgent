@@ -73,14 +73,14 @@ class WorkflowServiceV3:
                 "description": description,
             }
 
-            # ===== Stage 1: 确定预期学习结果 =====
+            # ===== Stage 1: 确定预期学习结果 (Markdown版) =====
             if 1 in stages_to_generate:
                 yield self._format_sse({
                     "event": "progress",
                     "data": {
                         "stage": 1,
                         "progress": 0,
-                        "message": "阶段1：分析课程目标，构建G/U/Q/K/S框架...",
+                        "message": "阶段1：分析课程目标，构建G/U/Q/K/S框架（Markdown格式）...",
                     },
                 })
 
@@ -102,46 +102,20 @@ class WorkflowServiceV3:
                     })
                     return
 
-                stage_one_data = result1["data"]
-
-                # 验证U的质量
-                yield self._format_sse({
-                    "event": "progress",
-                    "data": {
-                        "stage": 1,
-                        "progress": 80,
-                        "message": "验证持续理解(U)的质量...",
-                    },
-                })
-
-                validation_result = self.validation_service.validate_stage_one(
-                    stage_one_data
-                )
-
-                # 将validation_score添加到understandings
-                for i, u in enumerate(stage_one_data.get("understandings", [])):
-                    if i < len(validation_result["understandings_validation"]):
-                        u["validation_score"] = validation_result[
-                            "understandings_validation"
-                        ][i]["score"]
+                # 获取Markdown内容（而非JSON数据）
+                stage_one_data = result1["markdown"]
 
                 yield self._format_sse({
                     "event": "stage_complete",
                     "data": {
                         "stage": 1,
-                        "result": stage_one_data,
-                        "validation": {
-                            "overall_valid": validation_result["overall_valid"],
-                            "avg_score": validation_result["avg_score"],
-                            "warnings": validation_result["warnings"],
-                        },
+                        "markdown": stage_one_data,
                         "generation_time": result1["generation_time"],
                     },
                 })
 
                 logger.info(
-                    f"Stage 1 complete: {len(stage_one_data.get('understandings', []))} U, "
-                    f"validation score: {validation_result['avg_score']:.2f}"
+                    f"Stage 1 Markdown complete: {len(stage_one_data)} characters"
                 )
 
             # ===== Stage 2: 确定可接受的证据 =====
@@ -242,17 +216,13 @@ class WorkflowServiceV3:
                     "total_time": round(total_time, 2),
                     "summary": {
                         "stage_one": {
-                            "goals": len(stage_one_data.get("goals", [])) if stage_one_data else 0,
-                            "understandings": len(stage_one_data.get("understandings", [])) if stage_one_data else 0,
-                            "questions": len(stage_one_data.get("questions", [])) if stage_one_data else 0,
-                            "knowledge": len(stage_one_data.get("knowledge", [])) if stage_one_data else 0,
-                            "skills": len(stage_one_data.get("skills", [])) if stage_one_data else 0,
+                            "markdown_length": len(stage_one_data) if isinstance(stage_one_data, str) else 0,
                         },
                         "stage_two": {
-                            "performance_tasks": len(stage_two_data.get("performance_tasks", [])) if stage_two_data else 0,
+                            "markdown_length": len(stage_two_data) if isinstance(stage_two_data, str) else 0,
                         },
                         "stage_three": {
-                            "pbl_phases": len(stage_three_data.get("pbl_phases", [])) if stage_three_data else 0,
+                            "markdown_length": len(stage_three_data) if isinstance(stage_three_data, str) else 0,
                         },
                     },
                 },

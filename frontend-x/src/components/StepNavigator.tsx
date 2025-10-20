@@ -18,18 +18,22 @@ const { Step } = Steps;
  */
 const UBD_STEPS: Array<{
   title: string;
+  shortTitle: string;
   description?: string;
 }> = [
   {
-    title: '阶段1',
+    title: '阶段一：确定预期学习结果',
+    shortTitle: '阶段1',
     description: '确定预期学习结果',
   },
   {
-    title: '阶段2',
+    title: '阶段二：确定恰当的评估方法',
+    shortTitle: '阶段2',
     description: '确定可接受的证据',
   },
   {
-    title: '阶段3',
+    title: '阶段三：规划相关教学过程',
+    shortTitle: '阶段3',
     description: '规划学习体验',
   },
 ];
@@ -120,7 +124,7 @@ export const StepNavigator: React.FC<StepNavigatorProps> = ({
     return <CheckCircleOutlined style={{ fontSize: '20px' }} />;
   };
 
-  // 紧凑模式：只显示步骤条，不显示描述
+  // 紧凑模式：显示完整阶段名称，不显示描述
   if (compact) {
     return (
       <Steps
