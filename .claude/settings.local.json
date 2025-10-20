@@ -62,7 +62,9 @@
       "Bash(claude --resume)",
       "Bash(.venv/Scripts/python.exe -m pytest tests/test_ubd_integration.py -v)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(specify:*)"
     ],
     "deny": [],
     "ask": []
