@@ -1,21 +1,29 @@
 /**
  * App.tsx - UbD-PBL课程架构师主应用
  * 集成所有组件，提供完整的课程设计工作流
+ *
+ * 架构原则：
+ * - 使用统一的Layout组件系统
+ * - 消除所有内联样式和magic number
+ * - 保持布局一致性
  */
 
 import React, { useState, lazy, Suspense } from 'react';
-import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin } from 'antd';
-import { PlusOutlined, SaveOutlined, QuestionCircleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin, Typography } from 'antd';
+import { PlusOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
 import { DownloadButton } from './components/DownloadButton';
+import { AppHeader, PageContainer } from './components/layout';
+import { COLORS, SPACING } from './constants/layout';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
 import type { WorkflowRequest, CourseProject } from './types/course';
 import './App.css';
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
+const { Text } = Typography;
 
 type ViewMode = 'list' | 'course';
 
@@ -252,135 +260,165 @@ function App() {
     }
   };
 
-  return (
-    <Layout style={{ minHeight: '100vh' }}>
-      {/* 顶部导航栏 */}
-      <Header style={{ background: '#fff', padding: '0 24px', borderBottom: '1px solid #f0f0f0' }}>
-        <Row justify="space-between" align="middle" style={{ height: '100%' }}>
-          <Col>
-            <Space size="large">
-              <h2 style={{ margin: 0, color: '#1890ff' }}>UbD-PBL 课程架构师</h2>
-              {viewMode === 'course' && courseInfo && (
-                <span style={{ color: '#666' }}>{courseInfo.title}</span>
-              )}
-            </Space>
-          </Col>
-          <Col>
-            <Space>
-              <Button
-                icon={<QuestionCircleOutlined />}
-                onClick={() => setHelpDialogOpen(true)}
-              >
-                帮助
-              </Button>
-              {viewMode === 'course' ? (
-                <>
-                  <Button
-                    icon={<ArrowLeftOutlined />}
-                    onClick={handleBackToList}
-                  >
-                    返回项目列表
-                  </Button>
-                  <DownloadButton
-                    courseId={courseInfo?.id}
-                    dropdown={true}
-                    disabled={!stageOneData}
-                  />
-                </>
-              ) : (
-                <Button
-                  icon={<PlusOutlined />}
-                  onClick={() => setCreateModalVisible(true)}
-                >
-                  新建课程
-                </Button>
-              )}
-            </Space>
-          </Col>
-        </Row>
-      </Header>
+  /**
+   * 渲染Header中间区域（步骤导航）
+   */
+  const renderHeaderCenter = () => {
+    if (viewMode === 'course') {
+      return (
+        <div style={{ flex: 1, maxWidth: '600px', margin: '0 auto' }}>
+          <StepNavigator compact={true} allowStepChange={true} />
+        </div>
+      );
+    }
+    return null;
+  };
 
-      {/* 步骤导航器 - 仅在课程视图显示 */}
-      {viewMode === 'course' && (
-        <div style={{ background: '#fff', padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
-          <StepNavigator allowStepChange={true} onGenerateStage={handleGenerateStage} />
+  /**
+   * 渲染Header右侧操作区
+   */
+  const renderHeaderActions = () => {
+    if (viewMode === 'course') {
+      return (
+        <>
+          <Button icon={<ArrowLeftOutlined />} onClick={handleBackToList}>
+            返回
+          </Button>
+          <DownloadButton
+            courseId={courseInfo?.id}
+            dropdown={true}
+            disabled={!stageOneData}
+          />
+        </>
+      );
+    }
+
+    return (
+      <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
+        新建课程
+      </Button>
+    );
+  };
+
+  /**
+   * 渲染课程设计视图
+   */
+  const renderCourseView = () => (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* 加载和错误提示 */}
+      {isGenerating && (
+        <div style={{
+          textAlign: 'center',
+          padding: SPACING.MD,
+          background: COLORS.BG_CONTAINER,
+          marginBottom: SPACING.SM,
+          borderRadius: '8px'
+        }}>
+          <Space direction="vertical" size="large">
+            <Spin size="large" />
+            <div>
+              <p>正在生成课程方案...</p>
+              <p>进度: {Math.round(generationProgress)}%</p>
+            </div>
+            <Button danger onClick={abortWorkflow}>
+              中止生成
+            </Button>
+          </Space>
         </div>
       )}
 
-      {/* 主内容区 */}
-      <Content style={{ padding: '24px', background: '#f0f2f5' }}>
-        {viewMode === 'list' ? (
-          /* 项目列表视图 */
-          <Suspense fallback={<LoadingFallback />}>
-            <ProjectListView
-              onOpenProject={handleOpenProject}
-              onCreateProject={() => setCreateModalVisible(true)}
+      {generationError && (
+        <div style={{
+          padding: SPACING.SM,
+          background: COLORS.BG_CONTAINER,
+          marginBottom: SPACING.SM,
+          borderRadius: '8px',
+          border: '1px solid #ff4d4f'
+        }}>
+          <p style={{ color: '#ff4d4f', margin: 0 }}>错误: {generationError}</p>
+        </div>
+      )}
+
+      {/* 对话和预览区域 - 全屏宽度 */}
+      <Row gutter={[SPACING.SM, SPACING.SM]} style={{ flex: 1, minHeight: 0 }}>
+        {/* 左侧：对话面板 */}
+        <Col xs={24} lg={10} style={{ height: '100%' }}>
+          <ChatPanel
+            currentStep={currentStep}
+            courseId={courseInfo?.id}
+            autoSync={false}
+            title={`Stage ${currentStep} 对话`}
+            showClearButton={true}
+            showExportButton={true}
+            style={{ height: '100%' }}
+          />
+        </Col>
+
+        {/* 右侧：内容/编辑面板 */}
+        <Col xs={24} lg={14} style={{ height: '100%' }}>
+          {isEditMode ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <MarkdownEditor
+                step={currentStep}
+                autoSave={true}
+                debounceMs={1000}
+                onSave={handleSaveMarkdown}
+                height="100%"
+              />
+            </Suspense>
+          ) : (
+            <ContentPanel
+              currentStep={currentStep}
+              stageOneData={stageOneData || undefined}
+              stageTwoData={stageTwoData || undefined}
+              stageThreeData={stageThreeData || undefined}
+              isEditMode={isEditMode}
+              onToggleEdit={handleToggleEdit}
+              style={{ height: '100%' }}
             />
-          </Suspense>
+          )}
+        </Col>
+      </Row>
+    </div>
+  );
+
+  return (
+    <Layout style={{ minHeight: '100vh', background: COLORS.BG_PAGE }}>
+      {/* 顶部导航栏 */}
+      <AppHeader
+        title={
+          <Space size="large">
+            <span>UbD-PBL 课程架构师</span>
+            {viewMode === 'course' && courseInfo && (
+              <Text type="secondary">{courseInfo.title}</Text>
+            )}
+          </Space>
+        }
+        center={renderHeaderCenter()}
+        extra={renderHeaderActions()}
+        onHelpClick={() => setHelpDialogOpen(true)}
+      />
+
+      {/* 主内容区 */}
+      <Content style={{ padding: 0 }}>
+        {viewMode === 'list' ? (
+          <PageContainer maxWidth="normal" padding="MD">
+            <Suspense fallback={<LoadingFallback />}>
+              <ProjectListView
+                onOpenProject={handleOpenProject}
+                onCreateProject={() => setCreateModalVisible(true)}
+              />
+            </Suspense>
+          </PageContainer>
         ) : (
-          /* 课程设计视图 */
-          <>
-            {isGenerating && (
-              <div style={{ textAlign: 'center', padding: '24px', background: '#fff', marginBottom: '16px', borderRadius: '8px' }}>
-                <Space direction="vertical" size="large">
-                  <Spin size="large" />
-                  <div>
-                    <p>正在生成课程方案...</p>
-                    <p>进度: {Math.round(generationProgress)}%</p>
-                  </div>
-                  <Button danger onClick={abortWorkflow}>
-                    中止生成
-                  </Button>
-                </Space>
-              </div>
-            )}
-
-            {generationError && (
-              <div style={{ padding: '16px', background: '#fff', marginBottom: '16px', borderRadius: '8px', border: '1px solid #ff4d4f' }}>
-                <p style={{ color: '#ff4d4f', margin: 0 }}>错误: {generationError}</p>
-              </div>
-            )}
-
-            <Row gutter={[16, 16]} style={{ height: 'calc(100vh - 240px)' }}>
-              {/* 左侧：对话面板 */}
-              <Col xs={24} lg={10} style={{ height: '100%' }}>
-                <ChatPanel
-                  currentStep={currentStep}
-                  courseId={courseInfo?.id}
-                  autoSync={false}
-                  title={`Stage ${currentStep} 对话`}
-                  showClearButton={true}
-                  showExportButton={true}
-                  style={{ height: '100%' }}
-                />
-              </Col>
-
-              {/* 右侧：内容/编辑面板 */}
-              <Col xs={24} lg={14} style={{ height: '100%' }}>
-                {isEditMode ? (
-                  <Suspense fallback={<LoadingFallback />}>
-                    <MarkdownEditor
-                      step={currentStep}
-                      autoSave={true}
-                      debounceMs={1000}
-                      onSave={handleSaveMarkdown}
-                      height="100%"
-                    />
-                  </Suspense>
-                ) : (
-                  <ContentPanel
-                    currentStep={currentStep}
-                    stageOneData={stageOneData || undefined}
-                    stageTwoData={stageTwoData || undefined}
-                    stageThreeData={stageThreeData || undefined}
-                    isEditMode={isEditMode}
-                    onToggleEdit={handleToggleEdit}
-                    style={{ height: '100%' }}
-                  />
-                )}
-              </Col>
-            </Row>
-          </>
+          <div style={{
+            width: '100%',
+            height: 'calc(100vh - 64px)',
+            padding: SPACING.MD,
+            boxSizing: 'border-box'
+          }}>
+            {renderCourseView()}
+          </div>
         )}
       </Content>
 
@@ -439,16 +477,18 @@ function App() {
           </Form.Item>
 
           <Form.Item>
-            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-              {courseInfo && (
-                <Button onClick={() => setCreateModalVisible(false)}>
-                  取消
+            <Row justify="end">
+              <Space>
+                {courseInfo && (
+                  <Button onClick={() => setCreateModalVisible(false)}>
+                    取消
+                  </Button>
+                )}
+                <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+                  创建并生成
                 </Button>
-              )}
-              <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
-                创建并生成
-              </Button>
-            </Space>
+              </Space>
+            </Row>
           </Form.Item>
         </Form>
       </Modal>
