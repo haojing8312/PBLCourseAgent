@@ -1,9 +1,9 @@
 """
 AI Agents Package
-+UbD-PBLþ„	*Agent
+UbD-PBL Course Architect Agents
 """
 
-# V3 Agents (UbDF¶)
+# V3 Agents (UbD Framework)
 from app.agents.project_foundation_v3 import ProjectFoundationAgentV3
 from app.agents.assessment_framework_v3 import AssessmentFrameworkAgentV3
 from app.agents.learning_blueprint_v3 import LearningBlueprintAgentV3
