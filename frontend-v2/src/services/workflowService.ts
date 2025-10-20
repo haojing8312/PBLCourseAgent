@@ -1,4 +1,5 @@
 import { createShapeId } from 'tldraw'
+import { apiService } from './api'
 
 export interface WorkflowNode {
   id: string
@@ -178,6 +179,8 @@ export class WorkflowService {
 
   /**
    * Execute the PBL workflow by calling the backend API (without canvas dependency)
+   *
+   * Uses apiService for centralized API configuration and error handling.
    */
   async executePBLWorkflow(courseInput: {
     course_topic: string
@@ -197,20 +200,8 @@ export class WorkflowService {
         await this.updateNodeStatus('input-node', 'in_progress')
       }
 
-      // Call the backend API
-      const response = await fetch('http://localhost:8888/api/v1/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(courseInput)
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
+      // Use apiService instead of direct fetch - eliminates hardcoded URL
+      const result = await apiService.generateCourse(courseInput)
 
       if (result.success) {
         // Update canvas nodes if editor is available (optional)
