@@ -5,7 +5,8 @@
 
 import {  useCallback, useRef } from 'react';
 import { useCourseStore } from '../stores/courseStore';
-import { streamWorkflow, WorkflowStreamResult } from '../services/workflowService';
+import { streamWorkflow } from '../services/workflowService';
+import type { WorkflowStreamResult } from '../services/workflowService';
 import type { WorkflowRequest } from '../types/course';
 
 export interface UseStepWorkflowReturn {
