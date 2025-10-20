@@ -1,0 +1,41 @@
+/**
+ * MarkdownEditor样式
+ */
+
+.markdown-editor-textarea {
+  border: none;
+  outline: none;
+  padding: 16px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(0, 0, 0, 0.85);
+  background-color: #fafafa;
+  tab-size: 2;
+}
+
+.markdown-editor-textarea:focus {
+  background-color: #fff;
+}
+
+.markdown-editor-textarea::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+/* 自定义滚动条 */
+.markdown-editor-textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.markdown-editor-textarea::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.markdown-editor-textarea::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.markdown-editor-textarea::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
