@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin } from 'antd';
-import { PlusOutlined, SaveOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined, QuestionCircleOutlined, UnorderedListOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
@@ -13,14 +13,20 @@ import { MarkdownEditor } from './components/MarkdownEditor';
 import { DownloadButton } from './components/DownloadButton';
 import { HelpDialog } from './components/HelpDialog';
 import { OnboardingOverlay } from './components/OnboardingOverlay';
+import { ProjectListView } from './components/ProjectListView';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
-import type { WorkflowRequest } from './types/course';
+import type { WorkflowRequest, CourseProject } from './types/course';
 import './App.css';
 
 const { Header, Content } = Layout;
 
+type ViewMode = 'list' | 'course';
+
 function App() {
+  // 视图模式 ('list' | 'course')
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+
   // 课程Store状态
   const {
     courseInfo,
@@ -54,13 +60,32 @@ function App() {
   );
 
   /**
-   * 如果没有课程信息，显示创建对话框
+   * 打开项目（从列表进入课程设计视图）
    */
-  useEffect(() => {
-    if (!courseInfo) {
-      setCreateModalVisible(true);
-    }
-  }, [courseInfo]);
+  const handleOpenProject = async (project: CourseProject) => {
+    // 加载项目数据到Store
+    setCourseInfo({
+      id: project.id,
+      title: project.title,
+      subject: project.subject,
+      grade_level: project.grade_level,
+      duration_weeks: project.duration_weeks,
+      description: project.description,
+    });
+
+    // TODO: 从后端加载stage数据到Store
+    // await loadProjectData(project.id);
+
+    // 切换到课程设计视图
+    setViewMode('course');
+  };
+
+  /**
+   * 返回项目列表
+   */
+  const handleBackToList = () => {
+    setViewMode('list');
+  };
 
   /**
    * 创建新课程并启动工作流
@@ -89,6 +114,9 @@ function App() {
 
     // 关闭对话框
     setCreateModalVisible(false);
+
+    // 切换到课程视图
+    setViewMode('course');
 
     // 启动工作流
     try {
@@ -123,7 +151,9 @@ function App() {
           <Col>
             <Space size="large">
               <h2 style={{ margin: 0, color: '#1890ff' }}>UbD-PBL 课程架构师</h2>
-              {courseInfo && <span style={{ color: '#666' }}>{courseInfo.title}</span>}
+              {viewMode === 'course' && courseInfo && (
+                <span style={{ color: '#666' }}>{courseInfo.title}</span>
+              )}
             </Space>
           </Col>
           <Col>
@@ -134,93 +164,117 @@ function App() {
               >
                 帮助
               </Button>
-              <Button
-                icon={<PlusOutlined />}
-                onClick={() => setCreateModalVisible(true)}
-              >
-                新建课程
-              </Button>
-              <DownloadButton
-                courseId={courseInfo?.id}
-                dropdown={true}
-                disabled={!stageOneData}
-              />
+              {viewMode === 'course' ? (
+                <>
+                  <Button
+                    icon={<ArrowLeftOutlined />}
+                    onClick={handleBackToList}
+                  >
+                    返回项目列表
+                  </Button>
+                  <DownloadButton
+                    courseId={courseInfo?.id}
+                    dropdown={true}
+                    disabled={!stageOneData}
+                  />
+                </>
+              ) : (
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={() => setCreateModalVisible(true)}
+                >
+                  新建课程
+                </Button>
+              )}
             </Space>
           </Col>
         </Row>
       </Header>
 
-      {/* 步骤导航器 */}
-      <div style={{ background: '#fff', padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
-        <StepNavigator
-          current={currentStep - 1}
-          stepStatus={stepStatus}
-          onChange={(step) => {
-            // 通过useStepWorkflow的goToStep处理
-          }}
-        />
-      </div>
+      {/* 步骤导航器 - 仅在课程视图显示 */}
+      {viewMode === 'course' && (
+        <div style={{ background: '#fff', padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
+          <StepNavigator
+            current={currentStep - 1}
+            stepStatus={stepStatus}
+            onChange={(step) => {
+              // 通过useStepWorkflow的goToStep处理
+            }}
+          />
+        </div>
+      )}
 
       {/* 主内容区 */}
       <Content style={{ padding: '24px', background: '#f0f2f5' }}>
-        {isGenerating && (
-          <div style={{ textAlign: 'center', padding: '24px', background: '#fff', marginBottom: '16px', borderRadius: '8px' }}>
-            <Space direction="vertical" size="large">
-              <Spin size="large" />
-              <div>
-                <p>正在生成课程方案...</p>
-                <p>进度: {Math.round(generationProgress)}%</p>
+        {viewMode === 'list' ? (
+          /* 项目列表视图 */
+          <ProjectListView
+            onOpenProject={handleOpenProject}
+            onCreateProject={() => setCreateModalVisible(true)}
+          />
+        ) : (
+          /* 课程设计视图 */
+          <>
+            {isGenerating && (
+              <div style={{ textAlign: 'center', padding: '24px', background: '#fff', marginBottom: '16px', borderRadius: '8px' }}>
+                <Space direction="vertical" size="large">
+                  <Spin size="large" />
+                  <div>
+                    <p>正在生成课程方案...</p>
+                    <p>进度: {Math.round(generationProgress)}%</p>
+                  </div>
+                  <Button danger onClick={abortWorkflow}>
+                    中止生成
+                  </Button>
+                </Space>
               </div>
-              <Button danger onClick={abortWorkflow}>
-                中止生成
-              </Button>
-            </Space>
-          </div>
-        )}
-
-        {generationError && (
-          <div style={{ padding: '16px', background: '#fff', marginBottom: '16px', borderRadius: '8px', border: '1px solid #ff4d4f' }}>
-            <p style={{ color: '#ff4d4f', margin: 0 }}>错误: {generationError}</p>
-          </div>
-        )}
-
-        <Row gutter={[16, 16]} style={{ height: 'calc(100vh - 240px)' }}>
-          {/* 左侧：对话面板 */}
-          <Col xs={24} lg={10} style={{ height: '100%' }}>
-            <ChatPanel
-              currentStep={currentStep}
-              courseId={courseInfo?.id}
-              autoSync={false}
-              title={`Stage ${currentStep} 对话`}
-              showClearButton={true}
-              showExportButton={true}
-              style={{ height: '100%' }}
-            />
-          </Col>
-
-          {/* 右侧：内容/编辑面板 */}
-          <Col xs={24} lg={14} style={{ height: '100%' }}>
-            {isEditMode ? (
-              <MarkdownEditor
-                step={currentStep}
-                autoSave={true}
-                debounceMs={1000}
-                onSave={handleSaveMarkdown}
-                height="100%"
-              />
-            ) : (
-              <ContentPanel
-                currentStep={currentStep}
-                stageOneData={stageOneData || undefined}
-                stageTwoData={stageTwoData || undefined}
-                stageThreeData={stageThreeData || undefined}
-                isEditMode={isEditMode}
-                onToggleEdit={handleToggleEdit}
-                style={{ height: '100%' }}
-              />
             )}
-          </Col>
-        </Row>
+
+            {generationError && (
+              <div style={{ padding: '16px', background: '#fff', marginBottom: '16px', borderRadius: '8px', border: '1px solid #ff4d4f' }}>
+                <p style={{ color: '#ff4d4f', margin: 0 }}>错误: {generationError}</p>
+              </div>
+            )}
+
+            <Row gutter={[16, 16]} style={{ height: 'calc(100vh - 240px)' }}>
+              {/* 左侧：对话面板 */}
+              <Col xs={24} lg={10} style={{ height: '100%' }}>
+                <ChatPanel
+                  currentStep={currentStep}
+                  courseId={courseInfo?.id}
+                  autoSync={false}
+                  title={`Stage ${currentStep} 对话`}
+                  showClearButton={true}
+                  showExportButton={true}
+                  style={{ height: '100%' }}
+                />
+              </Col>
+
+              {/* 右侧：内容/编辑面板 */}
+              <Col xs={24} lg={14} style={{ height: '100%' }}>
+                {isEditMode ? (
+                  <MarkdownEditor
+                    step={currentStep}
+                    autoSave={true}
+                    debounceMs={1000}
+                    onSave={handleSaveMarkdown}
+                    height="100%"
+                  />
+                ) : (
+                  <ContentPanel
+                    currentStep={currentStep}
+                    stageOneData={stageOneData || undefined}
+                    stageTwoData={stageTwoData || undefined}
+                    stageThreeData={stageThreeData || undefined}
+                    isEditMode={isEditMode}
+                    onToggleEdit={handleToggleEdit}
+                    style={{ height: '100%' }}
+                  />
+                )}
+              </Col>
+            </Row>
+          </>
+        )}
       </Content>
 
       {/* 创建课程对话框 */}
