@@ -1,0 +1,1008 @@
+openapi: 3.0.3
+info:
+  title: UbD-PBL课程架构师 V3 API
+  description: |
+    API for UbD-PBL Course Architect V3.
+
+    **Core Workflow**:
+    1. Create course project → 2. Generate Stage One → 3. Generate Stage Two → 4. Generate Stage Three → 5. Export course plan
+
+    **Streaming Support**: `/api/v1/workflow/stream` provides SSE for real-time progress.
+  version: 3.0.0
+  contact:
+    name: PBLCourseAgent Team
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.pblcourseagent.com
+    description: Production server (future)
+
+paths:
+  /api/v1/courses:
+    get:
+      summary: List all course projects
+      operationId: listCourses
+      tags: [Courses]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, in_progress, completed, archived]
+          description: Filter by project status
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by title or subject (keyword)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      courses:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CourseProjectSummary'
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+
+    post:
+      summary: Create a new course project
+      operationId: createCourse
+      tags: [Courses]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseRequest'
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/CourseProject'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/courses/{courseId}:
+    get:
+      summary: Get full course project data
+      operationId: getCourse
+      tags: [Courses]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/CourseProjectFull'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update course project metadata
+      operationId: updateCourse
+      tags: [Courses]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                subject:
+                  type: string
+                grade_level:
+                  type: string
+                duration_weeks:
+                  type: integer
+      responses:
+        '200':
+          description: Course updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/CourseProject'
+
+    delete:
+      summary: Delete a course project
+      operationId: deleteCourse
+      tags: [Courses]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '204':
+          description: Course deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/courses/{courseId}/stage-one:
+    get:
+      summary: Get Stage One data (G/U/Q/K/S)
+      operationId: getStageOne
+      tags: [Stage One]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StageOneData'
+
+    put:
+      summary: Update Stage One data (user edits)
+      operationId: updateStageOne
+      tags: [Stage One]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStageOneRequest'
+      responses:
+        '200':
+          description: Stage One updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StageOneData'
+                  warnings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ValidationWarning'
+
+  /api/v1/courses/{courseId}/stage-two:
+    get:
+      summary: Get Stage Two data (驱动性问题, 表现性任务)
+      operationId: getStageTwo
+      tags: [Stage Two]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StageTwoData'
+
+    put:
+      summary: Update Stage Two data (user edits)
+      operationId: updateStageTwo
+      tags: [Stage Two]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStageTwoRequest'
+      responses:
+        '200':
+          description: Stage Two updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StageTwoData'
+
+  /api/v1/courses/{courseId}/stage-three:
+    get:
+      summary: Get Stage Three data (PBL学习蓝图)
+      operationId: getStageThree
+      tags: [Stage Three]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StageThreeData'
+
+    put:
+      summary: Update Stage Three data (user edits)
+      operationId: updateStageThree
+      tags: [Stage Three]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStageThreeRequest'
+      responses:
+        '200':
+          description: Stage Three updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/StageThreeData'
+
+  /api/v1/workflow/stream:
+    post:
+      summary: Execute full 3-stage workflow with SSE progress
+      operationId: streamWorkflow
+      tags: [Workflow]
+      parameters:
+        - name: courseId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowRequest'
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  data: {"type": "agent_start", "agent": "stage_one", "percent": 0}
+
+                  data: {"type": "agent_progress", "agent": "stage_one", "percent": 50}
+
+                  data: {"type": "agent_complete", "agent": "stage_one", "percent": 100, "result": {...}}
+
+                  data: {"type": "workflow_complete", "success": true}
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/validate/ubd-element:
+    post:
+      summary: Validate UbD element (U vs K, Q format, etc.)
+      operationId: validateUbDElement
+      tags: [Validation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                element_type:
+                  type: string
+                  enum: [U, K, S, Q, G]
+                text:
+                  type: string
+              required: [element_type, text]
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      is_valid:
+                        type: boolean
+                      confidence:
+                        type: number
+                        format: float
+                        minimum: 0
+                        maximum: 1
+                      warnings:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ValidationWarning'
+
+  /api/v1/courses/{courseId}/changes:
+    get:
+      summary: Detect upstream changes for联动regeneration
+      operationId: detectChanges
+      tags: [Workflow]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - name: target_stage
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [2, 3]
+          description: Which stage to check for upstream changes
+      responses:
+        '200':
+          description: Change detection result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      stage1_changed:
+                        type: boolean
+                      stage2_changed:
+                        type: boolean
+                      affected_stages:
+                        type: array
+                        items:
+                          type: integer
+                      last_modified_times:
+                        type: object
+                        properties:
+                          stage1:
+                            type: string
+                            format: date-time
+                          stage2:
+                            type: string
+                            format: date-time
+
+  /api/v1/courses/{courseId}/conversation:
+    post:
+      summary: Save conversation message to history
+      operationId: saveConversation
+      tags: [Conversation]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [step, message]
+              properties:
+                step:
+                  type: integer
+                  enum: [1, 2, 3, 4]
+                  description: 当前步骤编号
+                message:
+                  type: object
+                  required: [role, content]
+                  properties:
+                    role:
+                      type: string
+                      enum: [user, assistant]
+                      description: 消息角色
+                    content:
+                      type: string
+                      description: 消息内容
+                    metadata:
+                      type: object
+                      description: 可选元数据
+                      properties:
+                        action:
+                          type: string
+                          enum: [generate, modify, edit]
+                        affectedFields:
+                          type: array
+                          items:
+                            type: string
+      responses:
+        '200':
+          description: Message saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message_id:
+                        type: string
+                        description: 保存的消息ID
+                      timestamp:
+                        type: string
+                        format: date-time
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+    get:
+      summary: Get conversation history for a step
+      operationId: getConversation
+      tags: [Conversation]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - name: step
+          in: query
+          required: true
+          schema:
+            type: integer
+            enum: [1, 2, 3, 4]
+          description: 步骤编号
+      responses:
+        '200':
+          description: Conversation history retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      step:
+                        type: integer
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            role:
+                              type: string
+                              enum: [user, assistant]
+                            content:
+                              type: string
+                            timestamp:
+                              type: string
+                              format: date-time
+                            metadata:
+                              type: object
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/courses/{courseId}/export:
+    post:
+      summary: Export course plan to Markdown/PDF
+      operationId: exportCourse
+      tags: [Export]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [markdown, pdf]
+                  default: markdown
+      responses:
+        '200':
+          description: Exported file
+          content:
+            text/markdown:
+              schema:
+                type: string
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    CourseId:
+      name: courseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CourseProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        subject:
+          type: string
+        current_stage:
+          type: string
+          enum: [stage_one, stage_two, stage_three, completed]
+        status:
+          type: string
+          enum: [draft, in_progress, completed, archived]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CourseProject:
+      allOf:
+        - $ref: '#/components/schemas/CourseProjectSummary'
+        - type: object
+          properties:
+            grade_level:
+              type: string
+            duration_weeks:
+              type: integer
+            stage_versions:
+              type: object
+              properties:
+                stage1_modified:
+                  type: string
+                  format: date-time
+                stage2_modified:
+                  type: string
+                  format: date-time
+                stage3_modified:
+                  type: string
+                  format: date-time
+
+    CourseProjectFull:
+      allOf:
+        - $ref: '#/components/schemas/CourseProject'
+        - type: object
+          properties:
+            stage_one:
+              $ref: '#/components/schemas/StageOneData'
+            stage_two:
+              $ref: '#/components/schemas/StageTwoData'
+            stage_three:
+              $ref: '#/components/schemas/StageThreeData'
+
+    CreateCourseRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+        subject:
+          type: string
+          maxLength: 100
+        grade_level:
+          type: string
+          maxLength: 50
+        duration_weeks:
+          type: integer
+          minimum: 1
+          maximum: 52
+          default: 12
+
+    StageOneData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        course_project_id:
+          type: string
+          format: uuid
+        goals:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        understandings:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/UbDItem'
+              - type: object
+                properties:
+                  validation_score:
+                    type: number
+                    format: float
+                    minimum: 0
+                    maximum: 1
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        knowledge:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        ai_generated_at:
+          type: string
+          format: date-time
+        user_modified_at:
+          type: string
+          format: date-time
+
+    UbDItem:
+      type: object
+      required: [text, order]
+      properties:
+        text:
+          type: string
+          minLength: 1
+        order:
+          type: integer
+          minimum: 0
+
+    UpdateStageOneRequest:
+      type: object
+      properties:
+        goals:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        understandings:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        knowledge:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/UbDItem'
+
+    StageTwoData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        course_project_id:
+          type: string
+          format: uuid
+        driving_question:
+          type: string
+        driving_question_context:
+          type: string
+        performance_tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceTask'
+        other_evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              description:
+                type: string
+        ai_generated_at:
+          type: string
+          format: date-time
+        user_modified_at:
+          type: string
+          format: date-time
+
+    PerformanceTask:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        context:
+          type: string
+        student_role:
+          type: string
+        deliverable:
+          type: string
+        milestone_week:
+          type: integer
+        order:
+          type: integer
+        linked_ubd_elements:
+          type: object
+          properties:
+            u:
+              type: array
+              items:
+                type: integer
+            s:
+              type: array
+              items:
+                type: integer
+            k:
+              type: array
+              items:
+                type: integer
+        rubric:
+          $ref: '#/components/schemas/Rubric'
+
+    Rubric:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        dimensions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RubricDimension'
+
+    RubricDimension:
+      type: object
+      properties:
+        name:
+          type: string
+        weight:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        levels:
+          type: array
+          minItems: 4
+          maxItems: 5
+          items:
+            type: object
+            properties:
+              level:
+                type: integer
+                minimum: 1
+                maximum: 5
+              label:
+                type: string
+              description:
+                type: string
+
+    UpdateStageTwoRequest:
+      type: object
+      properties:
+        driving_question:
+          type: string
+        driving_question_context:
+          type: string
+        performance_tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceTask'
+        other_evidence:
+          type: array
+          items:
+            type: object
+
+    StageThreeData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        course_project_id:
+          type: string
+          format: uuid
+        phases:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items:
+            $ref: '#/components/schemas/PBLPhase'
+        ai_generated_at:
+          type: string
+          format: date-time
+        user_modified_at:
+          type: string
+          format: date-time
+
+    PBLPhase:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [launch, build, develop, present]
+        name:
+          type: string
+        duration_weeks:
+          type: integer
+        description:
+          type: string
+        activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearningActivity'
+
+    LearningActivity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        duration_days:
+          type: integer
+        order:
+          type: integer
+        ubd_labels:
+          type: array
+          items:
+            type: string
+            pattern: '^[USQKG]\d+$'
+        whereto_labels:
+          type: array
+          items:
+            type: string
+            enum: [W-Where, H-Hook, E-Explore, R-Rethink, E-Equip, T-Tailor, O-Organize]
+
+    UpdateStageThreeRequest:
+      type: object
+      properties:
+        phases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PBLPhase'
+
+    WorkflowRequest:
+      type: object
+      properties:
+        regenerate_stages:
+          type: array
+          items:
+            type: integer
+            enum: [1, 2, 3]
+          description: Which stages to regenerate (default all 3)
+
+    ValidationWarning:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+        severity:
+          type: string
+          enum: [warning, error]
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        message:
+          type: string
+        error:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Courses
+    description: Course project CRUD operations
+  - name: Stage One
+    description: Stage One (锚定深刻理解) operations
+  - name: Stage Two
+    description: Stage Two (设计评估证据) operations
+  - name: Stage Three
+    description: Stage Three (规划PBL学习体验) operations
+  - name: Workflow
+    description: Full workflow execution and change detection
+  - name: Validation
+    description: UbD element validation
+  - name: Export
+    description: Export course plans to various formats
