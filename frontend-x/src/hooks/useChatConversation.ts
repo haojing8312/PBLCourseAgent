@@ -5,7 +5,7 @@
 
 import { useMemo, useCallback } from 'react';
 import { useCourseStore } from '../stores/courseStore';
-import type { ConversationMessage } from '../types/course';
+// import type { ConversationMessage } from '../types/course';
 import {
   addConversationMessages,
   createUserMessage,

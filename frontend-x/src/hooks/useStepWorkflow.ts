@@ -3,10 +3,10 @@
  * 管理UbD三阶段导航和工作流生成
  */
 
-import { useState, useCallback, useRef } from 'react';
+import {  useCallback, useRef } from 'react';
 import { useCourseStore } from '../stores/courseStore';
 import { streamWorkflow, WorkflowStreamResult } from '../services/workflowService';
-import type { WorkflowRequest, SSEEvent } from '../types/course';
+import type { WorkflowRequest } from '../types/course';
 
 export interface UseStepWorkflowReturn {
   // 状态

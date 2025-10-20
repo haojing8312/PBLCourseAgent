@@ -8,7 +8,7 @@ import { Conversations, Bubble, Sender } from '@ant-design/x';
 import { Card, Space, Button, Tooltip, Badge } from 'antd';
 import { DeleteOutlined, DownloadOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useChatConversation } from '../hooks/useChatConversation';
-import type { ConversationMessage } from '../types/course';
+// import type { ConversationMessage } from '../types/course';
 
 export interface ChatPanelProps {
   /** 当前步骤 (1-3) */

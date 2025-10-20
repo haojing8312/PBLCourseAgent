@@ -17,7 +17,7 @@ export interface MarkdownEditorProps {
   step: number;
 
   /** 初始内容 */
-  initialContent?: string;
+  _initialContent?: string;
 
   /** 自动保存延迟（毫秒） */
   debounceMs?: number;
@@ -54,7 +54,7 @@ export interface MarkdownEditorProps {
  */
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   step,
-  initialContent = '',
+  _initialContent = '',
   debounceMs = 1000,
   autoSave = false,
   onSave,
