@@ -31,7 +31,7 @@ export interface MarkdownEditorProps {
   /** 自定义样式 */
   style?: React.CSSProperties;
 
-  /** 高度 */
+  /** 高度（已废弃，现在使用flex布局自适应） */
   height?: string | number;
 }
 
@@ -48,7 +48,6 @@ export interface MarkdownEditorProps {
  *   onSave={async (step, content) => {
  *     await updateMarkdown(courseId, step, content);
  *   }}
- *   height="600px"
  * />
  * ```
  */
@@ -59,7 +58,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   autoSave = false,
   onSave,
   style,
-  height = '600px',
+  height: _deprecatedHeight,
 }) => {
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
 
@@ -135,20 +134,29 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           )}
         </Space>
       }
-      style={{ height: '100%', ...style }}
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        ...style
+      }}
       styles={{
         body: {
           padding: 0,
-          height: `calc(100% - 57px)`,
+          flex: 1,
+          minHeight: 0,
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
         }
       }}
     >
       <Tabs
         activeKey={activeTab}
         onChange={(key) => setActiveTab(key as 'edit' | 'preview')}
-        style={{ height: '100%' }}
-        tabBarStyle={{ paddingLeft: '16px', paddingRight: '16px', marginBottom: 0 }}
+        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+        tabBarStyle={{ paddingLeft: '16px', paddingRight: '16px', marginBottom: 0, flex: 'none' }}
+        className="markdown-editor-tabs"
       >
         <TabPane
           tab={
@@ -157,6 +165,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             </span>
           }
           key="edit"
+          style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}
         >
           <textarea
             className="markdown-editor-textarea"
@@ -165,8 +174,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             placeholder="在此输入Markdown内容..."
             style={{
               width: '100%',
-              height: typeof height === 'number' ? `${height}px` : height,
+              height: '100%',
               resize: 'none',
+              boxSizing: 'border-box',
             }}
           />
         </TabPane>
@@ -178,13 +188,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             </span>
           }
           key="preview"
+          style={{ flex: 1, minHeight: 0, overflow: 'auto' }}
         >
-          <div
-            style={{
-              height: typeof height === 'number' ? `${height}px` : height,
-              overflowY: 'auto',
-            }}
-          >
+          <div style={{ padding: '16px' }}>
             <MarkdownPreview content={markdown} />
           </div>
         </TabPane>

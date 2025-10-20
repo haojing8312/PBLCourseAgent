@@ -39,3 +39,20 @@
 .markdown-editor-textarea::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* 修复Ant Design Tabs在flex布局中的问题 */
+.markdown-editor-tabs .ant-tabs-content-holder {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.markdown-editor-tabs .ant-tabs-content {
+  height: 100%;
+}
+
+.markdown-editor-tabs .ant-tabs-tabpane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
