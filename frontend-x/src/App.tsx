@@ -14,6 +14,7 @@ import { DownloadButton } from './components/DownloadButton';
 import { HelpDialog } from './components/HelpDialog';
 import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { ProjectListView } from './components/ProjectListView';
+import { ChangeDetectionDialog } from './components/ChangeDetectionDialog';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
 import type { WorkflowRequest, CourseProject } from './types/course';
@@ -58,6 +59,12 @@ function App() {
   const [onboardingOpen, setOnboardingOpen] = useState(
     !localStorage.getItem('onboarding-completed')
   );
+
+  // 变更检测对话框
+  const [changeDetectionOpen, setChangeDetectionOpen] = useState(false);
+  const [changedStage, setChangedStage] = useState<number>(1);
+  const [affectedStages, setAffectedStages] = useState<number[]>([]);
+  const [skipChangeDetection, setSkipChangeDetection] = useState(false); // 跳过变更检测标志
 
   /**
    * 打开项目（从列表进入课程设计视图）
@@ -141,6 +148,67 @@ function App() {
     // 这里可以调用后端API保存
     console.log(`[App] Saving markdown for step ${step}:`, markdown);
     // await updateStageMarkdown(courseInfo?.id, step, markdown);
+
+    // 触发变更检测
+    handleStageChange(step);
+  };
+
+  /**
+   * 处理Stage数据变更
+   * 检测是否需要重新生成下游阶段
+   */
+  const handleStageChange = (step: number) => {
+    // 如果用户已选择跳过检测，直接返回
+    if (skipChangeDetection) {
+      return;
+    }
+
+    // 更新Stage版本
+    useCourseStore.getState().updateStageVersion(step);
+
+    // 确定受影响的下游阶段
+    const downstream: number[] = [];
+    if (step === 1) {
+      // Stage 1变更影响Stage 2和3
+      if (stageTwoData) downstream.push(2);
+      if (stageThreeData) downstream.push(3);
+    } else if (step === 2) {
+      // Stage 2变更影响Stage 3
+      if (stageThreeData) downstream.push(3);
+    }
+    // Stage 3没有下游阶段
+
+    // 如果有受影响的阶段，显示变更检测对话框
+    if (downstream.length > 0) {
+      setChangedStage(step);
+      setAffectedStages(downstream);
+      setChangeDetectionOpen(true);
+    }
+  };
+
+  /**
+   * 级联重新生成受影响的阶段
+   */
+  const handleCascadeRegenerate = async (stages: number[]) => {
+    setChangeDetectionOpen(false);
+
+    // 构建工作流请求
+    const workflowRequest: WorkflowRequest = {
+      title: courseInfo?.title || '',
+      subject: courseInfo?.subject,
+      grade_level: courseInfo?.grade_level,
+      duration_weeks: courseInfo?.duration_weeks,
+      description: courseInfo?.description,
+      stages_to_generate: stages,
+    };
+
+    try {
+      message.info(`正在重新生成 Stage ${stages.join(', ')}...`);
+      await startWorkflow(workflowRequest);
+      message.success('重新生成完成！');
+    } catch (error) {
+      message.error('重新生成失败，请重试');
+    }
   };
 
   return (
@@ -360,6 +428,21 @@ function App() {
           localStorage.setItem('onboarding-completed', 'true');
           setOnboardingOpen(false);
         }}
+      />
+
+      {/* 变更检测对话框 */}
+      <ChangeDetectionDialog
+        open={changeDetectionOpen}
+        changedStage={changedStage}
+        affectedStages={affectedStages}
+        onRegenerate={handleCascadeRegenerate}
+        onCancel={() => setChangeDetectionOpen(false)}
+        onSkip={() => {
+          setSkipChangeDetection(true);
+          setChangeDetectionOpen(false);
+          message.info('已跳过变更检测，本次会话将不再提示');
+        }}
+        loading={isGenerating}
       />
     </Layout>
   );
