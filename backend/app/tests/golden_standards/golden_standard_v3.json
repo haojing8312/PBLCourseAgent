@@ -1,0 +1,884 @@
+{
+  "description": "黄金标准V3 - 0基础AI编程课程 (12周) - UbD-PBL框架完整示例",
+  "version": "3.0",
+  "created": "2025-10-20",
+  "input": {
+    "title": "0基础AI编程课程",
+    "subject": "计算机科学与人工智能",
+    "grade_level": "高中/大学初年级",
+    "duration_weeks": 12,
+    "description": "面向零编程基础学生的AI入门课程，通过PBL项目式学习，引导学生理解AI技术的本质、掌握基础编程技能，并能够设计和开发简单的AI应用来解决真实社区问题。"
+  },
+
+  "expected_stage_one": {
+    "goals": [
+      {
+        "text": "学生将能够自主地设计并实现AI解决方案来解决真实社区问题，并评估其社会影响",
+        "order": 0
+      },
+      {
+        "text": "学生将能够在新情境中批判性地分析AI技术的伦理影响，提出负责任的技术应用建议",
+        "order": 1
+      },
+      {
+        "text": "学生将能够独立学习新的编程工具和AI技术，并将其应用于解决未知问题",
+        "order": 2
+      }
+    ],
+
+    "understandings": [
+      {
+        "text": "理解AI技术是一把双刃剑：它既能为社会带来便利和创新，也可能引发隐私、偏见和失业等风险",
+        "order": 0,
+        "rationale": "这是一个跨越具体技术的永恒洞察，即使AI技术更新换代，技术的双刃剑本质不会改变。学生理解这一点后，能够在未来对任何新技术保持批判性思维。"
+      },
+      {
+        "text": "意识到数据的质量和多样性直接决定AI模型的有效性和公平性",
+        "order": 1,
+        "rationale": "这是AI领域的核心原理（Garbage in, Garbage out）。学生理解数据的重要性后，能够迁移到其他依赖数据的领域（如数据科学、统计学）。"
+      },
+      {
+        "text": "认识到编程语言是表达思想和解决问题的工具，而不仅仅是记忆语法规则",
+        "order": 2,
+        "rationale": "这是计算思维的本质理解，超越具体语言（Python、JavaScript等）。学生理解编程的本质是问题分解和逻辑表达后，能够快速学习任何新语言。"
+      },
+      {
+        "text": "理解AI并非魔法，而是基于大量数据和数学模型的模式识别系统",
+        "order": 3,
+        "rationale": "这消除了对AI的神秘化认知，帮助学生建立科学的技术观。即使未来AI技术演进，其基于数据和算法的本质不会改变。"
+      }
+    ],
+
+    "questions": [
+      {
+        "text": "AI技术应该在多大程度上参与人类的决策（如医疗诊断、司法判决）？",
+        "order": 0
+      },
+      {
+        "text": "如何平衡技术创新的速度与伦理审查的必要性？",
+        "order": 1
+      },
+      {
+        "text": "当AI系统出现偏见或错误时，谁应该承担责任？",
+        "order": 2
+      }
+    ],
+
+    "knowledge": [
+      {
+        "text": "Python基本语法（变量、数据类型、循环、条件、函数）",
+        "order": 0
+      },
+      {
+        "text": "机器学习的基本概念（监督学习、非监督学习、训练与测试）",
+        "order": 1
+      },
+      {
+        "text": "提示工程(Prompt Engineering)的基本原则和技巧",
+        "order": 2
+      },
+      {
+        "text": "常见AI应用场景（图像识别、自然语言处理、推荐系统）",
+        "order": 3
+      },
+      {
+        "text": "AI伦理的关键概念（偏见、隐私、透明度、问责制）",
+        "order": 4
+      },
+      {
+        "text": "数据收集、清洗和标注的基本方法",
+        "order": 5
+      }
+    ],
+
+    "skills": [
+      {
+        "text": "使用Python编写和调试简单程序",
+        "order": 0
+      },
+      {
+        "text": "设计有效的AI提示词来完成特定任务",
+        "order": 1
+      },
+      {
+        "text": "使用现有AI工具（如ChatGPT、Stable Diffusion）创建简单应用原型",
+        "order": 2
+      },
+      {
+        "text": "批判性地分析和评估AI生成内容的质量和可靠性",
+        "order": 3
+      },
+      {
+        "text": "进行用户需求调研和问题分析",
+        "order": 4
+      },
+      {
+        "text": "团队协作设计和开发技术项目",
+        "order": 5
+      },
+      {
+        "text": "清晰地向非技术受众展示技术方案",
+        "order": 6
+      }
+    ]
+  },
+
+  "expected_stage_two": {
+    "driving_question": "我们如何利用AI技术，为我们的社区创造一个解决实际问题的工具，同时确保技术的负责任使用？",
+    "driving_question_context": "学生将扮演社区技术顾问的角色，首先调研社区中的真实问题（如老年人数字鸿沟、学生学习困难、环境监测等），然后设计并开发一个基于AI的解决方案原型。整个过程中，学生需要考虑技术的可行性、用户需求、伦理影响等多个维度。",
+
+    "performance_tasks": [
+      {
+        "title": "任务1: 社区问题调研与AI解决方案构想",
+        "description": "学生以小组形式深入社区进行问题调研，识别一个可以用AI技术辅助解决的真实问题，并提出初步的AI解决方案设计。",
+        "context": "作为社区技术研究员，你的团队被委托调研本地社区面临的挑战，并探索AI技术如何能够提供帮助。你需要采访至少5位社区成员，了解他们的痛点和需求。",
+        "student_role": "社区技术研究员",
+        "deliverable": "一份包含以下内容的调研报告（8-12页）：1) 社区问题描述和重要性分析；2) 用户访谈记录和需求分析；3) AI解决方案初步构想（包括技术路线、预期功能、潜在风险）；4) 伦理影响分析",
+        "milestone_week": 3,
+        "order": 0,
+        "linked_ubd_elements": {
+          "u": [0, 1, 3],
+          "s": [3, 4, 6],
+          "k": [3, 4]
+        },
+        "rubric": {
+          "name": "任务1评估量规",
+          "dimensions": [
+            {
+              "name": "问题分析深度",
+              "weight": 0.3,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "识别的问题具有真实性和重要性，分析包含多个利益相关者视角，问题的根本原因被清晰阐述，并提供了数据支持"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "识别的问题真实且重要，分析包含用户视角，根本原因被提及，有一定数据支持"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "识别的问题基本真实，但分析较为表面，缺乏对根本原因的深入探讨，数据支持不足"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "问题描述模糊或不真实，缺乏分析深度，无数据支持"
+                }
+              ]
+            },
+            {
+              "name": "AI方案可行性",
+              "weight": 0.25,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "提出的AI解决方案技术路线清晰可行，功能设计与用户需求高度匹配，考虑了实施的技术限制和资源约束"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "AI解决方案基本可行，功能设计与需求匹配，提及了主要技术限制"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "AI解决方案概念存在但可行性存疑，功能设计与需求匹配度一般，对技术限制认识不足"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "AI解决方案不可行或过于简化，功能设计与需求脱节"
+                }
+              ]
+            },
+            {
+              "name": "伦理思考",
+              "weight": 0.25,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "深入分析了AI方案的伦理影响（隐私、偏见、透明度等），提出了具体的风险缓解措施，展现了对技术双刃剑的理解"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "识别了主要伦理风险，提出了一些缓解措施，理解AI的潜在负面影响"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "提及了伦理问题但分析浅显，缺乏具体缓解措施"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "未考虑伦理影响或分析流于表面"
+                }
+              ]
+            },
+            {
+              "name": "调研质量",
+              "weight": 0.2,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "访谈了5位以上多样化的社区成员，访谈记录详细，需求分析有深度，使用了合适的调研方法"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "访谈了5位社区成员，记录较详细，需求分析基本合理"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "访谈人数不足或多样性欠缺，记录不够详细，需求分析浅显"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "缺乏实际调研或调研质量很差"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "title": "任务2: AI原型开发与测试",
+        "description": "基于任务1的设计，学生开发一个可运行的AI应用原型，并进行用户测试和迭代改进。",
+        "context": "作为AI应用开发者，你的团队需要将设计变为现实。你将使用Python和现有AI工具（如OpenAI API、Hugging Face模型）构建一个简单但可用的原型，并邀请社区成员测试。",
+        "student_role": "AI应用开发者",
+        "deliverable": "1) 可演示的AI应用原型（代码+运行说明）；2) 用户测试报告（包含至少3次测试的反馈和改进记录）；3) 技术文档（解释代码逻辑和AI模型选择理由）",
+        "milestone_week": 9,
+        "order": 1,
+        "linked_ubd_elements": {
+          "u": [1, 2, 3],
+          "s": [0, 1, 2, 4],
+          "k": [0, 1, 2, 3, 5]
+        },
+        "rubric": {
+          "name": "任务2评估量规",
+          "dimensions": [
+            {
+              "name": "原型功能完整性",
+              "weight": 0.3,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "原型实现了设计中的所有核心功能，能够稳定运行，用户界面友好，代码结构清晰"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "原型实现了主要功能，基本能运行，界面可用，代码有一定结构"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "原型功能不完整或有明显bug，界面粗糙，代码结构混乱"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "原型无法运行或功能严重缺失"
+                }
+              ]
+            },
+            {
+              "name": "编程技能",
+              "weight": 0.25,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "代码使用了合适的数据结构和算法，遵循Python最佳实践，有适当的注释和错误处理，展现了对编程概念的深入理解"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "代码基本正确，使用了合理的逻辑结构，有基本的注释和错误处理"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "代码能运行但逻辑混乱，缺乏注释，错误处理不足"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "代码有严重语法或逻辑错误，难以理解"
+                }
+              ]
+            },
+            {
+              "name": "迭代改进能力",
+              "weight": 0.25,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "进行了3次以上用户测试，根据反馈进行了实质性改进，清晰记录了问题、分析和解决方案，展现了数据驱动的迭代思维"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "进行了3次用户测试，根据反馈进行了改进，有改进记录"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "测试次数不足或改进不明显，记录不完整"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "缺乏用户测试或未进行迭代改进"
+                }
+              ]
+            },
+            {
+              "name": "技术文档质量",
+              "weight": 0.2,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "文档清晰解释了代码逻辑、AI模型选择理由、关键技术决策，非技术人员也能理解项目思路"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "文档基本解释了代码逻辑和模型选择，技术人员能够理解"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "文档不完整或解释不清晰"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "缺乏技术文档或质量很差"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "title": "任务3: 最终展示与反思",
+        "description": "学生向真实受众（社区成员、家长、其他学生）公开展示AI解决方案，并撰写深度反思报告。",
+        "context": "作为技术方案展示者，你将在社区开放日向真实用户演示你的AI工具，收集反馈，并反思整个学习旅程中对AI技术的理解变化。",
+        "student_role": "技术方案展示者与反思者",
+        "deliverable": "1) 10分钟公开演示（含PPT和现场Demo）；2) 深度反思报告（回应Essential Questions，总结对U的理解变化）",
+        "milestone_week": 12,
+        "order": 2,
+        "linked_ubd_elements": {
+          "u": [0, 1, 2, 3],
+          "s": [6],
+          "k": []
+        },
+        "rubric": {
+          "name": "任务3评估量规",
+          "dimensions": [
+            {
+              "name": "展示清晰度",
+              "weight": 0.3,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "演示结构清晰，逻辑连贯，技术内容被转化为非技术受众能理解的语言，Demo流畅，有效回应了观众问题"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "演示基本清晰，内容可理解，Demo基本成功，能回应主要问题"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "演示逻辑不清或过于技术化，Demo有问题，回应问题困难"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "演示混乱或无法进行，Demo失败"
+                }
+              ]
+            },
+            {
+              "name": "深度理解",
+              "weight": 0.4,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "反思报告深刻回应了所有Essential Questions，清晰阐述了对每个Understanding的个人见解，展现了从知识到智慧的转化，思考超越了课程内容"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "反思报告回应了Essential Questions，阐述了对Understandings的理解，有个人见解"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "反思较为表面，对Understandings的理解停留在知识层面，缺乏个人深度见解"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "反思流于表面或未真正回应Essential Questions"
+                }
+              ]
+            },
+            {
+              "name": "学习成长轨迹",
+              "weight": 0.3,
+              "levels": [
+                {
+                  "level": 4,
+                  "label": "卓越",
+                  "description": "清晰追溯了学习过程中的关键转折点，详细说明了理解的深化过程，提供了具体的证据（如前后作业对比、思维转变的关键时刻）"
+                },
+                {
+                  "level": 3,
+                  "label": "熟练",
+                  "description": "描述了学习成长过程，提供了一些证据"
+                },
+                {
+                  "level": 2,
+                  "label": "发展中",
+                  "description": "对学习成长的描述较为笼统，缺乏具体证据"
+                },
+                {
+                  "level": 1,
+                  "label": "初步",
+                  "description": "未能有效反思学习成长"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+
+    "other_evidence": [
+      {
+        "type": "课堂观察记录",
+        "description": "教师在每周的项目工作时间观察并记录学生的协作质量、问题解决策略、技术探索积极性，每位学生至少被观察记录5次"
+      },
+      {
+        "type": "Python技能检查点",
+        "description": "在第4周和第7周进行两次编程技能检查（30分钟编程任务），评估学生对Python基础语法和逻辑结构的掌握"
+      },
+      {
+        "type": "每周反思日志",
+        "description": "学生每周提交一次学习日志，回应本周对Essential Questions的新思考，记录对Understandings的理解变化"
+      },
+      {
+        "type": "同伴互评",
+        "description": "在任务1和任务2中，学生对其他小组的工作进行评审并提供建设性反馈，使用简化版的rubric"
+      }
+    ]
+  },
+
+  "expected_stage_three": {
+    "pbl_phases": [
+      {
+        "phase_type": "launch",
+        "phase_name": "项目启动：点燃好奇心",
+        "duration_weeks": 2,
+        "order": 0,
+        "activities": [
+          {
+            "week": 1,
+            "title": "AI改变世界：专家讲座与案例探索",
+            "description": "邀请本地科技公司的AI工程师进行讲座，分享AI在医疗、教育、环保等领域的真实应用案例（成功与失败）。学生观看纪录片《编码偏见》片段，讨论AI偏见问题。",
+            "duration_hours": 3,
+            "whereto_labels": ["H", "W"],
+            "linked_ubd_elements": {
+              "u": [0, 3],
+              "s": [],
+              "k": [3, 4]
+            },
+            "notes": "邀请讲座嘉宾时，确保其能够分享失败案例和伦理困境，而不仅仅是技术成就。纪录片可以引发关于U0（技术双刃剑）的深度讨论。"
+          },
+          {
+            "week": 1,
+            "title": "驱动性问题揭示与Know/Need to Know",
+            "description": "揭示驱动性问题：'我们如何利用AI技术，为我们的社区创造一个解决实际问题的工具？'学生进行KWL活动（Know-Want-Learn），列出已知的AI知识、想要学习的内容、需要掌握的技能。",
+            "duration_hours": 2,
+            "whereto_labels": ["W", "H"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [4],
+              "k": []
+            },
+            "notes": "强调'我们的社区'，让学生思考身边的真实问题。KWL清单将作为学习进度的基线，在课程结束时重新审视。"
+          },
+          {
+            "week": 2,
+            "title": "社区问题头脑风暴与初步分组",
+            "description": "学生以小组形式头脑风暴社区中可以用AI解决的问题（如老年人不会用智能手机、学生作业抄袭检测、垃圾分类指导等）。每组提出3个问题，全班投票选出最有价值的方向。",
+            "duration_hours": 2,
+            "whereto_labels": ["E", "H"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [4, 5],
+              "k": []
+            },
+            "notes": "鼓励学生选择他们真正关心的问题，而不是'看起来很酷'的技术。分组时考虑技能互补（技术强+沟通强）。"
+          },
+          {
+            "week": 2,
+            "title": "项目概述：任务、时间线与评估标准",
+            "description": "教师介绍三个Performance Tasks的要求和时间节点，展示rubric并进行解读。学生讨论如何达到'卓越'水平，明确学习目标和期望。",
+            "duration_hours": 1.5,
+            "whereto_labels": ["W", "O"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [],
+              "k": []
+            },
+            "notes": "使用过往优秀学生作品作为范例（如果有）。让学生用自己的话重述rubric标准，确保理解。"
+          }
+        ]
+      },
+      {
+        "phase_type": "build",
+        "phase_name": "知识与技能构建：打好基础",
+        "duration_weeks": 4,
+        "order": 1,
+        "activities": [
+          {
+            "week": 3,
+            "title": "Python基础（一）：变量、数据类型与控制流",
+            "description": "通过Codecademy或类似在线平台学习Python基础，完成变量、列表、字典、if-else、for循环的课程。课堂上进行配对编程练习，解决小问题（如'计算购物清单总价'）。",
+            "duration_hours": 4,
+            "whereto_labels": ["E"],
+            "linked_ubd_elements": {
+              "u": [2],
+              "s": [0],
+              "k": [0]
+            },
+            "notes": "强调编程是'表达思想的工具'（U2）而非记忆语法。使用真实场景问题而非抽象练习，保持与项目的关联。"
+          },
+          {
+            "week": 3,
+            "title": "提示工程入门：与AI对话的艺术",
+            "description": "学生使用ChatGPT完成5个不同场景的任务（如'生成诗歌'、'代码调试'、'文本摘要'），尝试不同的提示词策略，记录哪种提示最有效。课堂分享'最佳提示词'案例。",
+            "duration_hours": 3,
+            "whereto_labels": ["E", "E"],
+            "linked_ubd_elements": {
+              "u": [3],
+              "s": [1, 3],
+              "k": [2]
+            },
+            "notes": "强调'AI并非魔法'（U3），让学生意识到提示词质量影响输出质量。可以设计'提示词挑战赛'增加趣味性。"
+          },
+          {
+            "week": 4,
+            "title": "Python基础（二）：函数与模块",
+            "description": "学习函数定义、参数、返回值，以及如何使用Python库（如requests、pandas）。完成小项目：'使用API获取天气数据并格式化输出'。",
+            "duration_hours": 4,
+            "whereto_labels": ["E"],
+            "linked_ubd_elements": {
+              "u": [2],
+              "s": [0],
+              "k": [0]
+            },
+            "notes": "函数是问题分解的体现（U2），强调'每个函数只做一件事'的设计哲学。API调用为后续AI集成做准备。"
+          },
+          {
+            "week": 4,
+            "title": "Python技能检查点1",
+            "description": "30分钟独立编程任务：给定问题描述，学生编写Python程序解决（如'统计文本中单词频率'）。教师根据代码正确性和逻辑清晰度评分。",
+            "duration_hours": 1,
+            "whereto_labels": ["E"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [0],
+              "k": [0]
+            },
+            "notes": "这是形成性评估，用于识别需要额外支持的学生。评分标准：代码能运行（60%）+ 逻辑清晰（40%）。"
+          },
+          {
+            "week": 5,
+            "title": "AI基础：机器学习概念与简单实践",
+            "description": "通过Google Teachable Machine进行图像分类体验（如训练模型识别'苹果vs橙子'），理解训练数据、标签、模型的概念。讨论：'如果训练数据都是红苹果，模型能识别青苹果吗？'（引向U1数据质量）。",
+            "duration_hours": 3,
+            "whereto_labels": ["E", "H"],
+            "linked_ubd_elements": {
+              "u": [1, 3],
+              "s": [],
+              "k": [1, 5]
+            },
+            "notes": "Teachable Machine是零代码工具，让学生专注于ML概念而非实现细节。数据偏见讨论是理解U1的关键体验。"
+          },
+          {
+            "week": 5,
+            "title": "用户调研方法：访谈与需求分析",
+            "description": "学习如何进行有效的用户访谈（开放性问题、倾听技巧、记录方法）。角色扮演练习：学生互相访谈，练习挖掘真实需求而非表面需求。",
+            "duration_hours": 2,
+            "whereto_labels": ["E", "T"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [4],
+              "k": []
+            },
+            "notes": "强调'用户说的不一定是真正需要的'。这为任务1的社区调研做准备，技能S4的关键训练。"
+          },
+          {
+            "week": 6,
+            "title": "AI伦理案例研讨",
+            "description": "阅读真实案例（如亚马逊AI招聘系统性别偏见、人脸识别错误逮捕），小组讨论Essential Questions：'谁应该为AI错误负责？'每组准备5分钟陈述立场。",
+            "duration_hours": 3,
+            "whereto_labels": ["R", "E"],
+            "linked_ubd_elements": {
+              "u": [0, 1],
+              "s": [3],
+              "k": [4]
+            },
+            "notes": "这是理解U0（技术双刃剑）的关键活动。鼓励争论和多元观点，没有标准答案。案例要真实且有冲击力。"
+          }
+        ]
+      },
+      {
+        "phase_type": "develop",
+        "phase_name": "开发与迭代：从想法到现实",
+        "duration_weeks": 4,
+        "order": 2,
+        "activities": [
+          {
+            "week": 7,
+            "title": "任务1工作时间：社区调研执行",
+            "description": "学生走出课堂，到社区进行用户访谈（每组至少5人）。教师提供调研指导和安全注意事项。部分时间用于整理访谈记录和初步需求分析。",
+            "duration_hours": 4,
+            "whereto_labels": ["E", "T"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [4, 5],
+              "k": []
+            },
+            "notes": "建议学生访谈不同年龄和背景的社区成员以获得多样化视角。教师应抽查访谈记录质量，及时指导。"
+          },
+          {
+            "week": 7,
+            "title": "Python技能检查点2",
+            "description": "30分钟独立编程任务：整合前几周学习内容，如'调用AI API生成文本并保存到文件'。",
+            "duration_hours": 1,
+            "whereto_labels": ["E"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [0, 2],
+              "k": [0, 2]
+            },
+            "notes": "检查学生是否能综合运用函数、API调用、文件操作。为原型开发（任务2）评估准备度。"
+          },
+          {
+            "week": 8,
+            "title": "任务1工作时间：报告撰写与同伴评审",
+            "description": "学生完成调研报告草稿，使用任务1的rubric进行同伴互评。每组阅读另一组的报告，提供书面反馈（至少3条改进建议）。",
+            "duration_hours": 4,
+            "whereto_labels": ["R", "E"],
+            "linked_ubd_elements": {
+              "u": [0, 1],
+              "s": [3, 6],
+              "k": [4]
+            },
+            "notes": "同伴评审训练批判性思维（S3）。教师要审核反馈质量，确保建设性而非敷衍。rubric帮助学生聚焦评分标准。"
+          },
+          {
+            "week": 8,
+            "title": "任务1提交与反馈",
+            "description": "各组提交最终版调研报告（Week 3 milestone）。教师提供详细的rubric评分和改进建议，为下一阶段的原型开发指明方向。",
+            "duration_hours": 1,
+            "whereto_labels": ["E", "R"],
+            "linked_ubd_elements": {
+              "u": [0, 1, 3],
+              "s": [3, 4, 6],
+              "k": [3, 4]
+            },
+            "notes": "反馈必须具体且可操作（如'伦理分析可以增加数据隐私的讨论'）。优秀报告可作为范例分享。"
+          },
+          {
+            "week": 9,
+            "title": "原型设计工作坊：从需求到技术方案",
+            "description": "基于任务1的调研结果，学生设计AI解决方案的技术架构（流程图、功能列表、技术选型）。教师提供AI工具库清单（OpenAI API、Hugging Face、Google Cloud AI等）及使用指南。",
+            "duration_hours": 3,
+            "whereto_labels": ["E", "O"],
+            "linked_ubd_elements": {
+              "u": [2, 3],
+              "s": [2, 5],
+              "k": [1, 2, 3]
+            },
+            "notes": "强调'编程是问题分解'（U2）。鼓励学生选择最简单可行的技术方案（MVP思维）。流程图帮助可视化逻辑。"
+          },
+          {
+            "week": 9,
+            "title": "任务2启动：编写第一版代码",
+            "description": "学生开始编写AI应用的核心功能代码。教师进行代码审查，指导常见错误（如API密钥安全、错误处理）。小组内分工：编程、测试、文档。",
+            "duration_hours": 4,
+            "whereto_labels": ["E", "T"],
+            "linked_ubd_elements": {
+              "u": [2],
+              "s": [0, 2, 5],
+              "k": [0, 2]
+            },
+            "notes": "差异化教学：编程能力强的学生可以探索更复杂功能，其他学生专注核心功能实现。强调团队协作（S5）。"
+          },
+          {
+            "week": 10,
+            "title": "迭代开发与调试",
+            "description": "学生进行至少3次开发-测试-改进循环。每次迭代后记录：遇到的问题、解决方法、下一步计划。教师提供'调试策略'指导（如阅读错误信息、使用print调试）。",
+            "duration_hours": 4,
+            "whereto_labels": ["R", "E"],
+            "linked_ubd_elements": {
+              "u": [1, 2],
+              "s": [0, 2],
+              "k": [0, 5]
+            },
+            "notes": "迭代记录是任务2 rubric的'迭代改进能力'评分依据。强调'失败是学习过程'，鼓励记录和反思错误。"
+          },
+          {
+            "week": 10,
+            "title": "用户测试1：社区成员试用",
+            "description": "学生邀请至少3位社区成员（最好是目标用户）试用原型，收集反馈。使用标准化的用户测试表格记录：成功完成的任务、遇到的困难、改进建议。",
+            "duration_hours": 3,
+            "whereto_labels": ["R", "E"],
+            "linked_ubd_elements": {
+              "u": [1],
+              "s": [4, 6],
+              "k": []
+            },
+            "notes": "真实用户反馈常常出乎学生意料（数据质量U1的体现）。教师要确保学生记录详细，而不仅仅是'用户说还不错'。"
+          }
+        ]
+      },
+      {
+        "phase_type": "present",
+        "phase_name": "成果展示与深度反思",
+        "duration_weeks": 2,
+        "order": 3,
+        "activities": [
+          {
+            "week": 11,
+            "title": "任务2提交与技术文档完善",
+            "description": "各组提交任务2：AI原型代码、用户测试报告、技术文档（Week 9 milestone）。教师评分并提供反馈，指导展示准备。",
+            "duration_hours": 2,
+            "whereto_labels": ["E"],
+            "linked_ubd_elements": {
+              "u": [1, 2, 3],
+              "s": [0, 1, 2, 4],
+              "k": [0, 1, 2, 3, 5]
+            },
+            "notes": "技术文档是任务2的关键deliverable，评估学生能否清晰表达技术思路（S6的前置训练）。"
+          },
+          {
+            "week": 11,
+            "title": "展示技能工作坊：如何讲好技术故事",
+            "description": "学习如何将技术内容转化为非技术受众能理解的故事。练习：用一句话说明'你的项目解决了什么问题'。观看TED演讲案例，分析演示结构（问题-解决方案-影响）。",
+            "duration_hours": 2,
+            "whereto_labels": ["E", "O"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [6],
+              "k": []
+            },
+            "notes": "强调'受众是社区成员，不是程序员'。鼓励使用类比、故事、演示而非技术术语。这是S6（向非技术受众展示）的关键训练。"
+          },
+          {
+            "week": 11,
+            "title": "展示排练与同伴反馈",
+            "description": "每组进行10分钟展示排练，其他学生扮演社区成员角色，提问和反馈。使用简化版rubric评价：清晰度、Demo效果、问题回应。",
+            "duration_hours": 3,
+            "whereto_labels": ["R", "E"],
+            "linked_ubd_elements": {
+              "u": [],
+              "s": [6],
+              "k": []
+            },
+            "notes": "排练是提升展示质量的关键。同伴反馈要具体（如'Demo时解释太快，我没看清'）。教师记录常见问题并集中指导。"
+          },
+          {
+            "week": 12,
+            "title": "社区开放日：最终展示",
+            "description": "举办社区开放日活动，邀请家长、社区成员、学校领导参加。每组进行10分钟展示+5分钟Q&A。观众填写反馈表，投票选出'最有价值解决方案'。",
+            "duration_hours": 3,
+            "whereto_labels": ["E", "O"],
+            "linked_ubd_elements": {
+              "u": [0, 1, 2, 3],
+              "s": [6],
+              "k": []
+            },
+            "notes": "这是真实受众（authentic audience），学生会感受到真实的压力和成就感。教师要营造庆祝氛围，肯定所有学生的努力。任务3 milestone。"
+          },
+          {
+            "week": 12,
+            "title": "深度反思：回应Essential Questions",
+            "description": "学生个人撰写深度反思报告，回应课程开始时的三个Essential Questions，总结对四个Understandings的理解变化。重新审视第1周的KWL清单，标注已学会的内容。",
+            "duration_hours": 3,
+            "whereto_labels": ["R", "E"],
+            "linked_ubd_elements": {
+              "u": [0, 1, 2, 3],
+              "s": [],
+              "k": []
+            },
+            "notes": "这是评估'持续理解'达成度的关键证据。反思必须是个人的、深刻的，而非总结知识点。教师反馈应聚焦思维深度而非文字优美。"
+          },
+          {
+            "week": 12,
+            "title": "课程闭幕与未来展望",
+            "description": "全班分享最深刻的学习体验和对AI的新认识。教师总结课程目标达成情况，颁发证书，讨论'如何继续学习AI'的路径（如在线课程、开源项目、竞赛）。",
+            "duration_hours": 2,
+            "whereto_labels": ["O", "R"],
+            "linked_ubd_elements": {
+              "u": [0, 1, 2, 3],
+              "s": [],
+              "k": []
+            },
+            "notes": "庆祝学习旅程的结束，同时指向未来的自主学习（G的体现）。可以邀请优秀学生分享'我最大的失败和收获'。"
+          }
+        ]
+      }
+    ]
+  },
+
+  "validation_notes": {
+    "stage_one_quality_checks": [
+      "U vs K 区分：所有4个U都是抽象观点，通过'5年后测试'",
+      "U的rationale清晰解释了为什么是big idea",
+      "G体现了U+S的综合应用能力",
+      "Q都是开放性问题，指向U"
+    ],
+    "stage_two_quality_checks": [
+      "驱动性问题包含真实情境（社区问题）、开放性、挑战性、明确产出（AI工具）",
+      "所有3个Performance Tasks都有context和student_role",
+      "每个任务的linked_ubd_elements正确引用Stage One",
+      "所有rubric有4个等级且描述具体可观察"
+    ],
+    "stage_three_quality_checks": [
+      "4个PBL阶段时长分配：Launch(2周/17%) + Build(4周/33%) + Develop(4周/33%) + Present(2周/17%)",
+      "所有活动都标注了WHERETO标签",
+      "至少70%活动有linked_ubd_elements",
+      "Performance Tasks的milestone_week(3, 9, 12)都有对应活动"
+    ],
+    "overall_coherence": [
+      "Stage Two的驱动性问题直接源自Stage One的U0和Q0",
+      "Stage Three的Launch阶段活动呼应驱动性问题",
+      "Stage Three的Build阶段为Performance Tasks提供必需的K和S",
+      "整个设计体现UbD逆向设计：U→评估→活动"
+    ]
+  }
+}

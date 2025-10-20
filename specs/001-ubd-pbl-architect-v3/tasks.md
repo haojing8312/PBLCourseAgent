@@ -24,10 +24,10 @@
 **Purpose**: Project initialization and basic structure
 
 - [x] T001 Create PHR v2 prompt files from v1 templates in backend/app/prompts/phr/
-- [ ] T002 [P] Install frontend-x dependencies (npm create vite@latest + Ant Design X + CodeMirror 6 + react-markdown)
-- [ ] T003 [P] Configure backend development environment (uv sync + .env setup with PBL_AI_API_KEY)
-- [ ] T004 [P] Create golden standard V3 test case file in backend/app/tests/golden_standards/v3/ai_programming_course_expected.json
-- [ ] T005 [P] Setup frontend build tooling in frontend-x/vite.config.ts (Ant Design X optimization, CodeMirror bundle splitting)
+- [x] T002 [P] Install frontend-x dependencies (npm create vite@latest + Ant Design X + CodeMirror 6 + react-markdown)
+- [x] T003 [P] Configure backend development environment (uv sync + .env setup with PBL_AI_API_KEY)
+- [x] T004 [P] Create golden standard V3 test case file in backend/app/tests/golden_standards/v3/ai_programming_course_expected.json
+- [x] T005 [P] Setup frontend build tooling in frontend-x/vite.config.ts (Ant Design X optimization, CodeMirror bundle splitting)
 
 ---
 
@@ -37,14 +37,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create database migration for CourseProject.conversation_history field in backend/app/models/course_project.py
-- [ ] T007 [P] Create UbD definitions constants file in frontend-x/src/constants/ubdDefinitions.ts (G/U/Q/K/S explanations)
-- [ ] T008 [P] Implement validation_service.py for UbD element validation (U vs K semantic check) in backend/app/services/validation_service.py
-- [ ] T009 [P] Create base courseStore with Zustand in frontend-x/src/stores/courseStore.ts (currentStep, stepStatus, conversationHistory, stageMarkdowns, isEditMode)
-- [ ] T010 [P] Setup SSE workflow endpoint in backend/app/api/v1/generate.py (POST /api/v1/workflow/stream)
-- [ ] T011 [P] Implement conversation API endpoints in backend/app/api/v1/course.py (POST/GET /api/v1/courses/{id}/conversation)
-- [ ] T012 Create StepNavigator component in frontend-x/src/components/StepNavigator.tsx (Ant Design Steps)
-- [ ] T013 [P] Configure sentence-transformers for semantic similarity testing in backend/app/tests/conftest.py
+- [x] T006 Create database migration for CourseProject.conversation_history field in backend/app/models/course_project.py
+- [x] T007 [P] Create UbD definitions constants file in frontend-x/src/constants/ubdDefinitions.ts (G/U/Q/K/S explanations)
+- [x] T008 [P] Implement validation_service.py for UbD element validation (U vs K semantic check) in backend/app/services/validation_service.py
+- [x] T009 [P] Create base courseStore with Zustand in frontend-x/src/stores/courseStore.ts (currentStep, stepStatus, conversationHistory, stageMarkdowns, isEditMode)
+- [x] T010 [P] Setup SSE workflow endpoint in backend/app/api/v1/generate.py (POST /api/v1/workflow/stream)
+- [x] T011 [P] Implement conversation API endpoints in backend/app/api/v1/course.py (POST/GET /api/v1/courses/{id}/conversation)
+- [x] T012 Create StepNavigator component in frontend-x/src/components/StepNavigator.tsx (Ant Design Steps)
+- [x] T013 [P] Configure sentence-transformers for semantic similarity testing in backend/app/tests/conftest.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
