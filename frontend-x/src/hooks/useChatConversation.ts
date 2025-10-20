@@ -1,9 +1,10 @@
 /**
  * useChatConversation Hook
  * 集成Ant Design X的对话功能，管理步骤级别的对话历史
+ * 支持ChatGPT式的流式AI回复
  */
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef, useState } from 'react';
 import { useCourseStore } from '../stores/courseStore';
 // import type { ConversationMessage } from '../types/course';
 import {
@@ -11,6 +12,8 @@ import {
   createUserMessage,
   createAssistantMessage,
 } from '../services/conversationService';
+import { streamChat, toApiMessages } from '../services/chatService';
+import type { ChatStreamResult } from '../services/chatService';
 
 export interface ChatMessage {
   id: string;
@@ -32,7 +35,7 @@ export interface UseChatConversationReturn {
   /** 当前步骤的对话消息 */
   messages: ChatMessage[];
 
-  /** 发送用户消息 */
+  /** 发送用户消息（自动触发AI回复） */
   sendMessage: (content: string) => Promise<void>;
 
   /** 添加助手消息 */
@@ -49,6 +52,15 @@ export interface UseChatConversationReturn {
 
   /** 是否有消息 */
   hasMessages: boolean;
+
+  /** AI是否正在回复 */
+  isAIResponding: boolean;
+
+  /** 当前AI正在生成的消息（流式） */
+  streamingMessage: string;
+
+  /** 中止AI回复 */
+  abortAIResponse: () => void;
 }
 
 /**
@@ -82,6 +94,11 @@ export function useChatConversation(
     clearConversation,
   } = useCourseStore();
 
+  // 流式回复状态
+  const [isAIResponding, setIsAIResponding] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState('');
+  const streamControllerRef = useRef<ChatStreamResult | null>(null);
+
   /**
    * 过滤当前步骤的消息
    */
@@ -93,7 +110,7 @@ export function useChatConversation(
   }, [conversationHistory, currentStep]);
 
   /**
-   * 发送用户消息
+   * 发送用户消息并触发AI回复
    */
   const sendMessage = useCallback(
     async (content: string) => {
@@ -102,27 +119,111 @@ export function useChatConversation(
         return;
       }
 
-      // 添加到本地Store
+      if (!courseId) {
+        console.warn('[useChatConversation] No courseId, cannot send message');
+        return;
+      }
+
+      // 1. 添加用户消息到Store
       addMessageToStore({
         role: 'user',
         content,
         step: currentStep,
       });
 
-      // 同步到后端
-      if (autoSync && courseId) {
+      // 2. 同步用户消息到后端
+      if (autoSync) {
         try {
           await addConversationMessages(courseId, [
             createUserMessage(content, currentStep),
           ]);
-          console.log('[useChatConversation] Message synced to backend');
+          console.log('[useChatConversation] User message synced to backend');
         } catch (error) {
-          console.error('[useChatConversation] Failed to sync message:', error);
-          // 不阻塞用户操作，只记录错误
+          console.error('[useChatConversation] Failed to sync user message:', error);
         }
       }
+
+      // 3. 触发AI流式回复
+      try {
+        setIsAIResponding(true);
+        setStreamingMessage('');
+
+        // 准备对话历史（不包含当前用户消息，因为会在API中添加）
+        const history = conversationHistory
+          .filter((msg) => !currentStep || msg.step === currentStep)
+          .slice(-20); // 最多保留最近20条
+
+        // 调用流式Chat API
+        const controller = await streamChat(
+          {
+            course_id: courseId,
+            message: content,
+            current_step: currentStep || 1,
+            conversation_history: toApiMessages(history),
+          },
+          {
+            onStart: () => {
+              console.log('[useChatConversation] AI started responding');
+            },
+            onChunk: (chunk) => {
+              // 累积AI回复内容
+              setStreamingMessage((prev) => prev + chunk);
+            },
+            onDone: () => {
+              console.log('[useChatConversation] AI response complete');
+
+              // 将完整的AI回复添加到Store
+              const finalMessage = streamingMessage + ''; // 确保获取最新值
+
+              // 使用setTimeout确保获取到最新的streamingMessage
+              setTimeout(() => {
+                const fullMessage = document.querySelector('[data-ai-streaming]')?.textContent || streamingMessage;
+
+                addMessageToStore({
+                  role: 'assistant',
+                  content: fullMessage,
+                  step: currentStep,
+                });
+
+                // 同步到后端
+                if (autoSync) {
+                  addConversationMessages(courseId, [
+                    createAssistantMessage(fullMessage, currentStep),
+                  ]).catch((error) => {
+                    console.error('[useChatConversation] Failed to sync AI message:', error);
+                  });
+                }
+
+                // 清理状态
+                setIsAIResponding(false);
+                setStreamingMessage('');
+              }, 100);
+            },
+            onError: (error) => {
+              console.error('[useChatConversation] AI response error:', error);
+
+              // 添加错误消息
+              addMessageToStore({
+                role: 'system',
+                content: `❌ AI回复失败: ${error}`,
+                step: currentStep,
+              });
+
+              // 清理状态
+              setIsAIResponding(false);
+              setStreamingMessage('');
+            },
+          }
+        );
+
+        streamControllerRef.current = controller;
+      } catch (error) {
+        console.error('[useChatConversation] Failed to start AI response:', error);
+        setIsAIResponding(false);
+        setStreamingMessage('');
+      }
     },
-    [currentStep, autoSync, courseId, addMessageToStore]
+    [currentStep, autoSync, courseId, addMessageToStore, conversationHistory, streamingMessage]
   );
 
   /**
@@ -177,6 +278,19 @@ export function useChatConversation(
   }, [clearConversation]);
 
   /**
+   * 中止AI回复
+   */
+  const abortAIResponse = useCallback(() => {
+    if (streamControllerRef.current) {
+      streamControllerRef.current.abort();
+      streamControllerRef.current = null;
+      setIsAIResponding(false);
+      setStreamingMessage('');
+      console.log('[useChatConversation] AI response aborted');
+    }
+  }, []);
+
+  /**
    * 是否有消息
    */
   const hasMessages = messages.length > 0;
@@ -189,6 +303,9 @@ export function useChatConversation(
     clearMessages,
     clearAllMessages,
     hasMessages,
+    isAIResponding,
+    streamingMessage,
+    abortAIResponse,
   };
 }
 
