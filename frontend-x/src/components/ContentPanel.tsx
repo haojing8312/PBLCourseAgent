@@ -4,9 +4,10 @@
  */
 
 import React from 'react';
-import { Card, Tabs, Space, Typography, List, Tag, Collapse, Badge, Button } from 'antd';
-import { EditOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Tabs, Space, Typography, List, Tag, Collapse, Badge, Button, Alert, Tooltip, Progress } from 'antd';
+import { EditOutlined, EyeOutlined, CheckCircleOutlined, WarningOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import type { StageOneData, StageTwoData, StageThreeData } from '../types/course';
+import { UbdTooltip } from './UbdTooltip';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -83,28 +84,98 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
 
         {/* U: 持续理解 */}
         <div>
-          <Title level={4}>U: 持续理解 (Understandings)</Title>
+          <Title level={4}>
+            U: 持续理解 (Understandings)
+            <UbdTooltip element="U" mode="popover" trigger="click" />
+          </Title>
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            {(stageOneData.understandings || []).map((u, idx) => (
-              <Card key={idx} size="small" bordered={false} style={{ backgroundColor: '#f5f5f5' }}>
-                <Text strong>U{idx + 1}: </Text>
-                <Text>{u.text}</Text>
-                <br />
-                <Text type="secondary" italic>理由: {u.rationale}</Text>
-                {u.validation_score !== undefined && (
-                  <>
-                    <br />
-                    <Badge
-                      status={
-                        u.validation_score >= 0.85 ? 'success' :
-                        u.validation_score >= 0.7 ? 'processing' : 'warning'
-                      }
-                      text={`验证分数: ${(u.validation_score * 100).toFixed(0)}%`}
-                    />
-                  </>
-                )}
-              </Card>
-            ))}
+            {(stageOneData.understandings || []).map((u, idx) => {
+              const score = u.validation_score !== undefined ? u.validation_score : null;
+              const isExcellent = score !== null && score >= 0.85;
+              const isGood = score !== null && score >= 0.7;
+              const needsImprovement = score !== null && score < 0.7;
+
+              return (
+                <Card
+                  key={idx}
+                  size="small"
+                  bordered={true}
+                  style={{
+                    backgroundColor: isExcellent ? '#f6ffed' : needsImprovement ? '#fff7e6' : '#f5f5f5',
+                    borderColor: isExcellent ? '#52c41a' : needsImprovement ? '#fa8c16' : '#d9d9d9',
+                  }}
+                >
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <div>
+                      <Text strong>U{idx + 1}: </Text>
+                      <Text>{u.text}</Text>
+                    </div>
+
+                    <div>
+                      <Text type="secondary" italic>理由: {u.rationale}</Text>
+                    </div>
+
+                    {score !== null && (
+                      <div>
+                        <Space align="center">
+                          {isExcellent && (
+                            <Tooltip title="这是一个优秀的持续理解陈述">
+                              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                            </Tooltip>
+                          )}
+                          {needsImprovement && (
+                            <Tooltip title="这个理解陈述可能过于具体，建议修改为更抽象的big idea">
+                              <WarningOutlined style={{ color: '#fa8c16' }} />
+                            </Tooltip>
+                          )}
+                          <Text
+                            type={isExcellent ? 'success' : needsImprovement ? 'warning' : undefined}
+                            strong
+                          >
+                            语义质量: {(score * 100).toFixed(0)}%
+                          </Text>
+                          <Progress
+                            percent={score * 100}
+                            size="small"
+                            strokeColor={isExcellent ? '#52c41a' : needsImprovement ? '#fa8c16' : '#1890ff'}
+                            showInfo={false}
+                            style={{ width: 100 }}
+                          />
+                        </Space>
+                      </div>
+                    )}
+
+                    {isExcellent && (
+                      <Alert
+                        message="为什么这是一个好的U？"
+                        description="这个理解陈述是抽象的、可迁移的核心观念，学生在多年后仍会记住这个深刻洞察。"
+                        type="success"
+                        showIcon
+                        icon={<InfoCircleOutlined />}
+                        closable
+                      />
+                    )}
+
+                    {needsImprovement && (
+                      <Alert
+                        message="改进建议"
+                        description={
+                          <ul style={{ paddingLeft: 20, marginBottom: 0 }}>
+                            <li>检查是否包含了具体的工具名称或技术细节（这些应该属于K）</li>
+                            <li>尝试将具体知识点提升为更普遍的原理或观念</li>
+                            <li>思考：学生在5年后还会记住这个吗？</li>
+                            <li>参考右侧帮助文档中U的定义和示例</li>
+                          </ul>
+                        }
+                        type="warning"
+                        showIcon
+                        closable
+                      />
+                    )}
+                  </Space>
+                </Card>
+              );
+            })}
           </Space>
         </div>
 
@@ -248,6 +319,20 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
       present: '成果展示与反思',
     };
 
+    // WHERETO原则说明映射
+    const wheretoMap: Record<string, { name: string; description: string }> = {
+      W: { name: 'Where & Why', description: '帮助学生了解学习目标和意义' },
+      H: { name: 'Hook', description: '激发兴趣和参与' },
+      E: {
+        name: 'Equip & Experience',
+        description: '提供学习所需的知识、技能和体验',
+      },
+      R: { name: 'Rethink & Revise', description: '引导反思和改进' },
+      E2: { name: 'Explore & Enable', description: '鼓励探究和自主学习' },
+      T: { name: 'Tailor', description: '个性化和差异化教学' },
+      O: { name: 'Organize & Optimize', description: '优化学习流程和资源' },
+    };
+
     return (
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Title level={4}>PBL学习蓝图</Title>
@@ -273,13 +358,55 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
                       <Space wrap>
                         <Text strong>时长: </Text>
                         <Tag>{activity.duration_hours}小时</Tag>
-                        <Text strong>WHERETO: </Text>
-                        {activity.whereto_labels.map((label) => (
-                          <Tag key={label} color="cyan">{label}</Tag>
-                        ))}
+                        <Text strong>WHERETO原则: </Text>
+                        {activity.whereto_labels.map((label) => {
+                          const key = label === 'E' ? (activity.whereto_labels.filter((l) => l === 'E').length > 1 ? 'E2' : 'E') : label;
+                          const tooltip = wheretoMap[key] || { name: label, description: '' };
+                          return (
+                            <Tooltip
+                              key={label + activity.week}
+                              title={
+                                <div>
+                                  <Text strong style={{ color: '#fff' }}>
+                                    {tooltip.name}
+                                  </Text>
+                                  <br />
+                                  <Text style={{ color: '#fff' }}>{tooltip.description}</Text>
+                                </div>
+                              }
+                            >
+                              <Tag color="cyan">{label}</Tag>
+                            </Tooltip>
+                          );
+                        })}
                       </Space>
                       <br />
-                      <Text type="secondary" italic>{activity.notes}</Text>
+                      {activity.linked_ubd_elements && (
+                        <>
+                          <Space wrap style={{ marginTop: 8 }}>
+                            <Text strong>关联UbD元素: </Text>
+                            {activity.linked_ubd_elements.u?.map((i) => (
+                              <Tag key={`u${i}`} color="blue">
+                                U{i + 1}
+                              </Tag>
+                            ))}
+                            {activity.linked_ubd_elements.s?.map((i) => (
+                              <Tag key={`s${i}`} color="green">
+                                S{i + 1}
+                              </Tag>
+                            ))}
+                            {activity.linked_ubd_elements.k?.map((i) => (
+                              <Tag key={`k${i}`} color="orange">
+                                K{i + 1}
+                              </Tag>
+                            ))}
+                          </Space>
+                          <br />
+                        </>
+                      )}
+                      <Text type="secondary" italic>
+                        教学提示: {activity.notes}
+                      </Text>
                     </Card>
                   </List.Item>
                 )}

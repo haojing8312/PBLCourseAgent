@@ -58,66 +58,66 @@
 
 ### Backend: Agent Prompt Upgrades (PHR v2)
 
-- [ ] T014 [P] [US1] Create project_foundation_v2.md in backend/app/prompts/phr/ with enhanced U vs K differentiation instructions
-- [ ] T015 [P] [US1] Create assessment_framework_v2.md in backend/app/prompts/phr/ with PBL driving question template
-- [ ] T016 [P] [US1] Create learning_blueprint_v2.md in backend/app/prompts/phr/ with WHERETO principles and 4-phase PBL structure
+- [x] T0*14 [P] [US1] Create project_foundation_v2.md in backend/app/prompts/phr/ with enhanced U vs K differentiation instructions
+- [x] T0*15 [P] [US1] Create assessment_framework_v2.md in backend/app/prompts/phr/ with PBL driving question template
+- [x] T0*16 [P] [US1] Create learning_blueprint_v2.md in backend/app/prompts/phr/ with WHERETO principles and 4-phase PBL structure
 
 ### Backend: Agent Class Upgrades
 
-- [ ] T017 [US1] Upgrade ProjectFoundationAgent._build_system_prompt() to load PHR v2 in backend/app/agents/project_foundation.py
-- [ ] T018 [US1] Upgrade AssessmentFrameworkAgent._build_system_prompt() to load PHR v2 in backend/app/agents/assessment_framework.py
-- [ ] T019 [US1] Upgrade LearningBlueprintAgent._build_system_prompt() to load PHR v2 in backend/app/agents/learning_blueprint.py
+- [x] T0*17 [US1] Upgrade ProjectFoundationAgent._build_system_prompt() to load PHR v2 in backend/app/agents/project_foundation.py
+- [x] T0*18 [US1] Upgrade AssessmentFrameworkAgent._build_system_prompt() to load PHR v2 in backend/app/agents/assessment_framework.py
+- [x] T0*19 [US1] Upgrade LearningBlueprintAgent._build_system_prompt() to load PHR v2 in backend/app/agents/learning_blueprint.py
 
 ### Backend: Data Models
 
-- [ ] T020 [P] [US1] Update StageOneData model to include validation_score in understandings JSON in backend/app/models/stage_data.py
-- [ ] T021 [P] [US1] Update StageTwoData model schema in backend/app/models/stage_data.py
-- [ ] T022 [P] [US1] Create PerformanceTask model in backend/app/models/performance_task.py
-- [ ] T023 [P] [US1] Create Rubric model in backend/app/models/rubric.py
-- [ ] T024 [P] [US1] Update StageThreeData model to include whereto_labels in activities JSON in backend/app/models/stage_data.py
+- [x] T0*20 [P] [US1] Update StageOneData model to include validation_score in understandings JSON in backend/app/models/stage_data.py
+- [x] T0*21 [P] [US1] Update StageTwoData model schema in backend/app/models/stage_data.py
+- [x] T0*22 [P] [US1] Create PerformanceTask model in backend/app/models/performance_task.py
+- [x] T0*23 [P] [US1] Create Rubric model in backend/app/models/rubric.py
+- [x] T0*24 [P] [US1] Update StageThreeData model to include whereto_labels in activities JSON in backend/app/models/stage_data.py
 
 ### Backend: Workflow Service
 
-- [ ] T025 [US1] Implement SSE stream generator in workflow_service.py (stream stage1→2→3 with progress events) in backend/app/services/workflow_service.py
-- [ ] T026 [US1] Add post-generation UbD validation call to validation_service in backend/app/services/workflow_service.py
-- [ ] T027 [US1] Implement change detection logic (stage_versions timestamp comparison) in backend/app/services/workflow_service.py
+- [x] T0*25 [US1] Implement SSE stream generator in workflow_service.py (stream stage1→2→3 with progress events) in backend/app/services/workflow_service.py
+- [x] T0*26 [US1] Add post-generation UbD validation call to validation_service in backend/app/services/workflow_service.py
+- [x] T0*27 [US1] Implement change detection logic (stage_versions timestamp comparison) in backend/app/services/workflow_service.py
 
 ### Backend: Export Service
 
-- [ ] T028 [US1] Create updated Markdown template with UbD theory explanations in backend/app/templates/course_export_v3.md.jinja2
-- [ ] T029 [US1] Update export_service.py to use new template and generate full UbD-PBL plan in backend/app/services/export_service.py
+- [x] T0*28 [US1] Create updated Markdown template with UbD theory explanations in backend/app/templates/course_export_v3.md.jinja2
+- [x] T0*29 [US1] Update export_service.py to use new template and generate full UbD-PBL plan in backend/app/services/export_service.py
 
 ### Frontend: ChatGPT-Style UI Components
 
-- [ ] T030 [P] [US1] Create ChatPanel component with Ant Design X <Conversations> in frontend-x/src/components/ChatPanel.tsx
-- [ ] T031 [P] [US1] Create ContentPanel component with preview/edit toggle in frontend-x/src/components/ContentPanel.tsx
-- [ ] T032 [P] [US1] Create MarkdownPreview component with react-markdown in frontend-x/src/components/MarkdownPreview.tsx
-- [ ] T033 [P] [US1] Create MarkdownEditor component with CodeMirror 6 in frontend-x/src/components/MarkdownEditor.tsx
-- [ ] T034 [P] [US1] Create UbdTooltip component for G/U/Q/K/S explanations in frontend-x/src/components/UbdTooltip.tsx
-- [ ] T035 [P] [US1] Create DownloadButton component for final export in frontend-x/src/components/DownloadButton.tsx
+- [x] T0*30 [P] [US1] Create ChatPanel component with Ant Design X <Conversations> in frontend-x/src/components/ChatPanel.tsx
+- [x] T0*31 [P] [US1] Create ContentPanel component with preview/edit toggle in frontend-x/src/components/ContentPanel.tsx
+- [x] T0*32 [P] [US1] Create MarkdownPreview component with react-markdown in frontend-x/src/components/MarkdownPreview.tsx
+- [x] T0*33 [P] [US1] Create MarkdownEditor component with CodeMirror 6 in frontend-x/src/components/MarkdownEditor.tsx
+- [x] T0*34 [P] [US1] Create UbdTooltip component for G/U/Q/K/S explanations in frontend-x/src/components/UbdTooltip.tsx
+- [x] T0*35 [P] [US1] Create DownloadButton component for final export in frontend-x/src/components/DownloadButton.tsx
 
 ### Frontend: Hooks
 
-- [ ] T036 [P] [US1] Implement useStepWorkflow hook (step navigation control, serial flow enforcement) in frontend-x/src/hooks/useStepWorkflow.ts
-- [ ] T037 [P] [US1] Implement useChatConversation hook (Ant Design X useXChat integration, SSE message streaming) in frontend-x/src/hooks/useChatConversation.ts
-- [ ] T038 [P] [US1] Implement useMarkdownSync hook (debounced auto-save to backend) in frontend-x/src/hooks/useMarkdownSync.ts
+- [x] T0*36 [P] [US1] Implement useStepWorkflow hook (step navigation control, serial flow enforcement) in frontend-x/src/hooks/useStepWorkflow.ts
+- [x] T0*37 [P] [US1] Implement useChatConversation hook (Ant Design X useXChat integration, SSE message streaming) in frontend-x/src/hooks/useChatConversation.ts
+- [x] T0*38 [P] [US1] Implement useMarkdownSync hook (debounced auto-save to backend) in frontend-x/src/hooks/useMarkdownSync.ts
 
 ### Frontend: Services
 
-- [ ] T039 [P] [US1] Create workflowService.ts with SSE EventSource handling in frontend-x/src/services/workflowService.ts
-- [ ] T040 [P] [US1] Create conversationService.ts with conversation CRUD APIs in frontend-x/src/services/conversationService.ts
-- [ ] T041 [P] [US1] Create exportService.ts with download API in frontend-x/src/services/exportService.ts
+- [x] T0*39 [P] [US1] Create workflowService.ts with SSE EventSource handling in frontend-x/src/services/workflowService.ts
+- [x] T0*40 [P] [US1] Create conversationService.ts with conversation CRUD APIs in frontend-x/src/services/conversationService.ts
+- [x] T0*41 [P] [US1] Create exportService.ts with download API in frontend-x/src/services/exportService.ts
 
 ### Frontend: Types
 
-- [ ] T042 [P] [US1] Define course types in frontend-x/src/types/course.ts (CourseProject, StageData interfaces)
-- [ ] T043 [P] [US1] Define conversation types in frontend-x/src/types/conversation.ts (Message, ConversationHistory interfaces)
+- [x] T0*42 [P] [US1] Define course types in frontend-x/src/types/course.ts (CourseProject, StageData interfaces)
+- [x] T0*43 [P] [US1] Define conversation types in frontend-x/src/types/conversation.ts (Message, ConversationHistory interfaces)
 
 ### Frontend: Main App
 
-- [ ] T044 [US1] Integrate all components into App.tsx with split-panel layout (StepNavigator + ChatPanel + ContentPanel) in frontend-x/src/App.tsx
-- [ ] T045 [US1] Implement step 1 auto-generation trigger on course creation in frontend-x/src/App.tsx
-- [ ] T046 [US1] Implement dependency display (e.g., "正在基于步骤1的3个U生成...") when entering step 2/3 in frontend-x/src/components/ChatPanel.tsx
+- [x] T0*44 [US1] Integrate all components into App.tsx with split-panel layout (StepNavigator + ChatPanel + ContentPanel) in frontend-x/src/App.tsx
+- [x] T0*45 [US1] Implement step 1 auto-generation trigger on course creation in frontend-x/src/App.tsx
+- [x] T0*46 [US1] Implement dependency display (e.g., "正在基于步骤1的3个U生成...") when entering step 2/3 in frontend-x/src/components/ChatPanel.tsx
 
 ### Integration & Validation
 

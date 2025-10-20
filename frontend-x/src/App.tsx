@@ -5,12 +5,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin } from 'antd';
-import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { DownloadButton } from './components/DownloadButton';
+import { HelpDialog } from './components/HelpDialog';
+import { OnboardingOverlay } from './components/OnboardingOverlay';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
 import type { WorkflowRequest } from './types/course';
@@ -44,6 +46,12 @@ function App() {
   // 新建课程对话框
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
+
+  // 帮助对话框和引导页
+  const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(
+    !localStorage.getItem('onboarding-completed')
+  );
 
   /**
    * 如果没有课程信息，显示创建对话框
@@ -120,6 +128,12 @@ function App() {
           </Col>
           <Col>
             <Space>
+              <Button
+                icon={<QuestionCircleOutlined />}
+                onClick={() => setHelpDialogOpen(true)}
+              >
+                帮助
+              </Button>
               <Button
                 icon={<PlusOutlined />}
                 onClick={() => setCreateModalVisible(true)}
@@ -277,6 +291,22 @@ function App() {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 帮助对话框 */}
+      <HelpDialog
+        open={helpDialogOpen}
+        onClose={() => setHelpDialogOpen(false)}
+        defaultActiveKey={currentStep === 1 ? 'stage-one' : currentStep === 2 ? 'stage-two' : 'stage-three'}
+      />
+
+      {/* 新手引导 */}
+      <OnboardingOverlay
+        open={onboardingOpen}
+        onFinish={() => {
+          localStorage.setItem('onboarding-completed', 'true');
+          setOnboardingOpen(false);
+        }}
+      />
     </Layout>
   );
 }

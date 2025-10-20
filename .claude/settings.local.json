@@ -70,7 +70,10 @@
       "Bash(.specify/scripts/bash/update-agent-context.sh claude)",
       "Bash(.specify/scripts/bash/check-prerequisites.sh --json)",
       "Bash(.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks)",
-      "Bash(git rev-parse --git-dir)"
+      "Bash(git rev-parse --git-dir)",
+      "Bash(for i in {14..46})",
+      "Bash(do sed -i \"s/- \\[ \\] T0*$i /- [x] T0*$i /\" tasks.md)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
