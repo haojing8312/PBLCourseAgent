@@ -1,0 +1,195 @@
+# 课程名称: {{ course_info.title }}
+
+**设计理念**: 本课程采用"为理解而设计"(Understanding by Design, UbD)作为核心设计框架，以"项目式学习"(Project-Based Learning, PBL)作为主要的教学实施模式，旨在引导学生在解决真实世界问题的过程中，构建对{% if course_info.subject %}{{ course_info.subject }}{% else %}核心知识{% endif %}的深度、持久的理解。
+
+---
+
+## **阶段一：确定预期学习结果**
+
+*在此阶段，我们首先明确学习的最终目标。我们问自己：学习结束后，学生应该能够理解什么、知道什么、做到什么？*
+
+### **G: 迁移目标 (Transfer Goals)**
+
+*(学生将能够自主地将所学应用到......)*
+
+{% for goal in stage_one.goals %}
+{{ loop.index }}. {{ goal.text }}
+{% endfor %}
+
+### **U: 持续理解 (Understandings)**
+
+*(学生将会理解...... 这是我们希望学生能"永恒"记住的核心思想。)*
+
+{% for u in stage_one.understandings %}
+**U{{ loop.index }}**: {{ u.text }}
+
+*理由*: {{ u.rationale }}
+{% if u.validation_score %}
+*语义验证分数*: {{ "%.2f"|format(u.validation_score) }} {% if u.validation_score >= 0.85 %}✅ 优秀{% elif u.validation_score >= 0.7 %}✓ 合格{% else %}⚠️ 需改进{% endif %}
+{% endif %}
+
+{% endfor %}
+
+### **Q: 基本问题 (Essential Questions)**
+
+*(学生将不断思考...... 这些开放性问题将激发探究，并引导学生走向持续理解。)*
+
+{% for q in stage_one.questions %}
+{{ loop.index }}. {{ q.text }}
+{% endfor %}
+
+### **K: 学生应掌握的知识 (Knowledge)**
+
+*(作为本单元的学习结果, 学生将会获得哪些关键知识？)*
+
+{% for k in stage_one.knowledge %}
+- {{ k.text }}
+{% endfor %}
+
+### **S: 学生应形成的技能 (Skills)**
+
+*(作为本单元的学习结果, 学生将会获得哪些关键技能？)*
+
+{% for s in stage_one.skills %}
+- {{ s.text }}
+{% endfor %}
+
+---
+
+## **阶段二：确定恰当的评估方法**
+
+*在此阶段，我们设计如何收集学生达成学习目标的证据。我们问：我们如何知道学生是否已经达到了预期结果？*
+
+### **驱动性问题 (Driving Question)** - PBL核心
+
+**{{ stage_two.driving_question }}**
+
+*情境说明*: {{ stage_two.driving_question_context }}
+
+### **表现性任务 (Performance Tasks)** - PBL项目里程碑
+
+*(学生通过哪些真实的、分阶段的表现性任务来证明他们的理解？)*
+
+{% for task in stage_two.performance_tasks %}
+#### 任务{{ loop.index }}: {{ task.title }}
+
+**任务描述**: {{ task.description }}
+
+**真实情境**: {{ task.context }}
+
+**学生角色**: {{ task.student_role }}
+
+**最终产出物**: {{ task.deliverable }}
+
+**里程碑周次**: 第{{ task.milestone_week }}周
+
+**关联的UbD元素**:
+{% if task.linked_ubd_elements.u %}
+- 持续理解(U): {% for idx in task.linked_ubd_elements.u %}U{{ idx + 1 }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+{% if task.linked_ubd_elements.s %}
+- 技能(S): {% for idx in task.linked_ubd_elements.s %}S{{ idx + 1 }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+{% if task.linked_ubd_elements.k %}
+- 知识(K): {% for idx in task.linked_ubd_elements.k %}K{{ idx + 1 }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+
+**评估量规**: {{ task.rubric.name }}
+
+{% for dimension in task.rubric.dimensions %}
+- **{{ dimension.name }}** (权重: {{ "%.0f"|format(dimension.weight * 100) }}%)
+{% for level in dimension.levels %}
+  - {{ level.label }} ({{ level.level }}分): {{ level.description }}
+{% endfor %}
+{% endfor %}
+
+---
+
+{% endfor %}
+
+### **其他评估证据 (Other Evidence)**
+
+*(在项目过程中，我们还通过哪些方式了解学生的学习进展？)*
+
+{% for evidence in stage_two.other_evidence %}
+- **{{ evidence.type }}**: {{ evidence.description }}
+{% endfor %}
+
+---
+
+## **阶段三：规划PBL学习体验和教学过程**
+
+*在明确了目标和评估之后，我们开始规划具体的教学活动。我们遵循WHERETO原则，设计一个引人入胜且有效的PBL学习旅程。*
+
+### **项目学习蓝图**
+
+*(课程时长: {{ course_info.duration_weeks }}周)*
+
+{% for phase in stage_three.pbl_phases %}
+---
+
+### {{ ["第一阶段", "第二阶段", "第三阶段", "第四阶段"][phase.order] }}: {{ phase.phase_name }}
+
+**阶段类型**: {{ {"launch": "项目启动", "build": "知识与技能构建", "develop": "开发与迭代", "present": "成果展示与反思"}[phase.phase_type] }}
+
+**时长**: {{ phase.duration_weeks }}周
+
+{% for activity in phase.activities %}
+#### Week {{ activity.week }}: {{ activity.title }}
+
+{{ activity.description }}
+
+- **时长**: {{ activity.duration_hours }}小时
+- **WHERETO原则**: {% for label in activity.whereto_labels %}{{ label }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% if activity.linked_ubd_elements.u or activity.linked_ubd_elements.s or activity.linked_ubd_elements.k %}
+- **服务的UbD元素**:
+  {% if activity.linked_ubd_elements.u %}U{% for idx in activity.linked_ubd_elements.u %}{{ idx + 1 }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}
+  {% if activity.linked_ubd_elements.s %}S{% for idx in activity.linked_ubd_elements.s %}{{ idx + 1 }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}
+  {% if activity.linked_ubd_elements.k %}K{% for idx in activity.linked_ubd_elements.k %}{{ idx + 1 }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}
+{% endif %}
+
+*教学提示*: {{ activity.notes }}
+
+---
+
+{% endfor %}
+
+{% endfor %}
+
+---
+
+## **WHERETO原则说明**
+
+本课程设计严格遵循WHERETO原则，确保每个活动都有明确的教学设计依据：
+
+- **W (Where & Why)**: 帮助学生了解学习目标和意义
+- **H (Hook)**: 激发兴趣和参与
+- **E (Equip & Experience)**: 提供学习所需的知识、技能和体验
+- **R (Rethink & Revise)**: 引导反思和改进
+- **E (Explore & Enable)**: 鼓励探究和自主学习
+- **T (Tailor)**: 个性化和差异化教学
+- **O (Organize & Optimize)**: 优化学习流程和资源
+
+---
+
+## **课程元信息**
+
+- **课程名称**: {{ course_info.title }}
+{% if course_info.subject %}
+- **学科领域**: {{ course_info.subject }}
+{% endif %}
+{% if course_info.grade_level %}
+- **年级水平**: {{ course_info.grade_level }}
+{% endif %}
+- **课程时长**: {{ course_info.duration_weeks }}周
+{% if course_info.description %}
+- **课程简介**: {{ course_info.description }}
+{% endif %}
+
+---
+
+*本课程方案由UbD-PBL课程架构师V3生成*
+
+*设计框架: Understanding by Design (UbD) + Project-Based Learning (PBL)*
+
+*生成时间: {{ generation_time }}*

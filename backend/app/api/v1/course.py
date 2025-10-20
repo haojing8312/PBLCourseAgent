@@ -303,6 +303,70 @@ def update_stage_three(
         )
 
 
+# ========== Export Endpoints ==========
+
+
+@router.get("/{course_id}/export/markdown")
+async def export_course_markdown(course_id: int, db: Session = Depends(get_db)):
+    """
+    导出课程为Markdown格式
+
+    Returns:
+        Markdown文件内容
+    """
+    from fastapi.responses import Response
+    from app.services.export_service import get_export_service
+
+    course = db.query(CourseProject).filter(CourseProject.id == course_id).first()
+
+    if not course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Course {course_id} not found"
+        )
+
+    try:
+        export_service = get_export_service()
+
+        # 准备课程信息
+        course_info = {
+            "title": course.title,
+            "subject": course.subject,
+            "grade_level": course.grade_level,
+            "duration_weeks": course.duration_weeks,
+            "description": course.description,
+        }
+
+        # 导出
+        filename, markdown_content = export_service.export_for_download(
+            stage_one_data=course.stage_one_data,
+            stage_two_data=course.stage_two_data,
+            stage_three_data=course.stage_three_data,
+            course_info=course_info,
+        )
+
+        logger.info(f"Exported course {course_id} to Markdown ({len(markdown_content)} bytes)")
+
+        return Response(
+            content=markdown_content,
+            media_type="text/markdown; charset=utf-8",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Export failed: {str(e)}",
+        )
+    except Exception as e:
+        logger.error(f"Error exporting course: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Export failed: {str(e)}",
+        )
+
+
 # ========== Conversation History Endpoints ==========
 
 
