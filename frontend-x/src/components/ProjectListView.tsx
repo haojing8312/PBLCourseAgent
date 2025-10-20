@@ -4,13 +4,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Space, Tag, Popconfirm, message, Modal, Form } from 'antd';
+import { Card, Table, Button, Input, Space, Tag, Popconfirm, message } from 'antd';
 import {
   PlusOutlined,
   SearchOutlined,
   DeleteOutlined,
   CopyOutlined,
-  EditOutlined,
   FolderOpenOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';

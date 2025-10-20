@@ -3,9 +3,9 @@
  * 集成所有组件，提供完整的课程设计工作流
  */
 
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin } from 'antd';
-import { PlusOutlined, SaveOutlined, QuestionCircleOutlined, UnorderedListOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { PlusOutlined, SaveOutlined, QuestionCircleOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
@@ -54,7 +54,6 @@ function App() {
 
   // 步骤工作流Hook
   const {
-    stepStatus,
     generationProgress,
     generationError,
     startWorkflow,
@@ -86,8 +85,8 @@ function App() {
       id: project.id,
       title: project.title,
       subject: project.subject,
-      grade_level: project.grade_level,
-      duration_weeks: project.duration_weeks,
+      gradeLevel: project.grade_level,
+      durationWeeks: project.duration_weeks,
       description: project.description,
     });
 
@@ -207,8 +206,8 @@ function App() {
     const workflowRequest: WorkflowRequest = {
       title: courseInfo?.title || '',
       subject: courseInfo?.subject,
-      grade_level: courseInfo?.grade_level,
-      duration_weeks: courseInfo?.duration_weeks,
+      grade_level: courseInfo?.gradeLevel,
+      duration_weeks: courseInfo?.durationWeeks || 12,
       description: courseInfo?.description,
       stages_to_generate: stages,
     };
@@ -273,13 +272,7 @@ function App() {
       {/* 步骤导航器 - 仅在课程视图显示 */}
       {viewMode === 'course' && (
         <div style={{ background: '#fff', padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
-          <StepNavigator
-            current={currentStep - 1}
-            stepStatus={stepStatus}
-            onChange={(step) => {
-              // 通过useStepWorkflow的goToStep处理
-            }}
-          />
+          <StepNavigator allowStepChange={true} />
         </div>
       )}
 

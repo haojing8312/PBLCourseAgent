@@ -73,7 +73,8 @@
       "Bash(git rev-parse --git-dir)",
       "Bash(for i in {14..46})",
       "Bash(do sed -i \"s/- \\[ \\] T0*$i /- [x] T0*$i /\" tasks.md)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []

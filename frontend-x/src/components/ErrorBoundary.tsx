@@ -3,7 +3,7 @@
  * 捕获子组件中的JavaScript错误并显示友好的错误界面
  */
 
-import React, { Component, ReactNode } from 'react';
+import React, { Component, type ReactNode } from 'react';
 import { Result, Button } from 'antd';
 
 interface ErrorBoundaryProps {
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+  static getDerivedStateFromError(_error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true };
   }
 
@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </Button>
             }
           >
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details style={{ textAlign: 'left', marginTop: 20 }}>
                 <summary>错误详情</summary>
                 <pre style={{ marginTop: 10, padding: 10, background: '#f5f5f5', borderRadius: 4 }}>

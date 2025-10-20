@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Card, Tabs, Space, Typography, List, Tag, Collapse, Badge, Button, Alert, Tooltip, Progress } from 'antd';
+import { Card, Space, Typography, List, Tag, Collapse, Button, Alert, Tooltip, Progress } from 'antd';
 import { EditOutlined, EyeOutlined, CheckCircleOutlined, WarningOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import type { StageOneData, StageTwoData, StageThreeData } from '../types/course';
 import { UbdTooltip } from './UbdTooltip';
@@ -92,7 +92,6 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
             {(stageOneData.understandings || []).map((u, idx) => {
               const score = u.validation_score !== undefined ? u.validation_score : null;
               const isExcellent = score !== null && score >= 0.85;
-              const isGood = score !== null && score >= 0.7;
               const needsImprovement = score !== null && score < 0.7;
 
               return (

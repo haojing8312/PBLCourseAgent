@@ -4,17 +4,17 @@
  */
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import type {
+  StageOneData,
+  StageTwoData,
+  StageThreeData,
+  ConversationMessage,
+} from '../types/course';
 
 /**
- * 对话消息
+ * 对话消息 (使用 types/course.ts 中的定义)
  */
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date;
-  step?: number; // 消息属于哪个步骤（1-3）
-}
+export type Message = ConversationMessage;
 
 /**
  * 步骤状态
@@ -33,33 +33,7 @@ export interface CourseInfo {
   description?: string;
 }
 
-/**
- * Stage One 数据（G/U/Q/K/S）
- */
-export interface StageOneData {
-  goals?: any[];
-  understandings?: any[];
-  questions?: any[];
-  knowledge?: any[];
-  skills?: any[];
-}
-
-/**
- * Stage Two 数据（驱动性问题 + 表现性任务）
- */
-export interface StageTwoData {
-  drivingQuestion?: string;
-  drivingQuestionContext?: string;
-  performanceTasks?: any[];
-  otherEvidence?: any[];
-}
-
-/**
- * Stage Three 数据（PBL学习蓝图）
- */
-export interface StageThreeData {
-  pblPhases?: any[];
-}
+// StageOneData, StageTwoData, StageThreeData 现在从 types/course.ts 导入
 
 /**
  * 课程Store状态
@@ -96,7 +70,7 @@ interface CourseState {
 
   // === 对话历史 ===
   conversationHistory: Message[];
-  addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+  addMessage: (message: Partial<Message> & Pick<Message, 'role' | 'content'>) => void;
   clearConversation: (step?: number) => void; // 清除特定步骤或所有对话
 
   // === SSE生成状态 ===
@@ -189,9 +163,9 @@ export const useCourseStore = create<CourseState>()(
               ...state.conversationHistory,
               {
                 ...message,
-                id: generateId(),
-                timestamp: new Date(),
-              },
+                id: message.id || generateId(),
+                timestamp: message.timestamp || new Date(),
+              } as Message,
             ],
           })),
 
