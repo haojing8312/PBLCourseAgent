@@ -36,6 +36,13 @@ def create_app() -> FastAPI:
     # 注册路由
     app.include_router(router, prefix="/api/v1")
 
+    # V3 API路由 - 工作流和课程管理
+    from app.api.v1.generate import router as workflow_router
+    from app.api.v1.course import router as course_router
+
+    app.include_router(workflow_router)  # 已包含/api/v1前缀
+    app.include_router(course_router)    # 已包含/api/v1/courses前缀
+
     return app
 
 
