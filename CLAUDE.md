@@ -338,6 +338,132 @@ if (result.success) {
 3. 包含错误处理和重试机制
 4. 有对应的单元测试
 
+### Prompt管理规范
+
+**核心理念**：Prompt是Agent的核心逻辑，应该像代码一样进行版本控制和测试。
+
+#### Prompt History Record (PHR) 标准
+
+所有Agent的Prompt必须存储在独立的PHR文件中，位置：`backend/app/prompts/phr/`
+
+**文件命名**：`{agent_name}_v{version}.md`
+
+例如：
+- `project_foundation_v1.md`
+- `assessment_framework_v1.md`
+- `learning_blueprint_v1.md`
+
+#### PHR文件结构
+
+每个PHR文件必须包含以下部分：
+
+1. **Meta Information**
+   - Version（版本号）
+   - Created/Last Modified（创建和修改日期）
+   - Agent Name（Agent名称）
+   - Model（使用的LLM模型）
+   - Model Parameters（温度、Token等）
+   - Performance Metrics（响应时间、成功率、质量评分）
+
+2. **System Prompt**
+   - 完整的系统提示词内容
+   - 包含角色定义、指令、Schema、Guidelines等
+
+3. **User Prompt Template**
+   - 用户提示词的格式说明
+   - 动态参数的构建方式
+
+4. **Guidelines for Use**
+   - 适用场景
+   - 关键设计原则
+   - 参数设置理由
+
+5. **Change Log**
+   - 每个版本的修改记录
+   - 修改原因和影响
+
+6. **Known Issues**
+   - 已知问题和局限性
+   - 改进建议
+
+7. **Testing Notes**
+   - 测试案例和结果
+   - 性能数据
+   - 优化建议
+
+#### Prompt修改流程
+
+**重要**：绝不直接修改现有版本！
+
+1. **创建新版本**
+   ```bash
+   # 从v1创建v2
+   cp backend/app/prompts/phr/project_foundation_v1.md \
+      backend/app/prompts/phr/project_foundation_v2.md
+   ```
+
+2. **更新新版本**
+   - 修改Prompt内容
+   - 更新Meta信息（版本号、修改日期）
+   - 在Change Log中添加详细的修改说明
+
+3. **运行回归测试**
+   ```bash
+   uv run pytest app/tests/test_{agent_name}.py -v
+   ```
+
+4. **记录性能指标**
+   - 对比新旧版本的响应时间、成功率、质量评分
+   - 在PHR的Meta部分记录测试结果
+
+5. **更新Agent代码引用**（如果决定使用新版本）
+   - 在Agent的`_build_system_prompt()`方法中添加注释：
+     ```python
+     def _build_system_prompt(self) -> str:
+         """构建系统提示词
+
+         Prompt版本: 参见 backend/app/prompts/phr/project_foundation_v2.md
+         """
+         return """..."""
+     ```
+
+#### Prompt A/B测试
+
+当需要对比两个不同的Prompt方案时：
+
+1. 创建两个变体文件：
+   - `{agent_name}_v{X}_variant_a.md`
+   - `{agent_name}_v{X}_variant_b.md`
+
+2. 分别测试并记录结果
+
+3. 选择表现更好的变体，重命名为正式版本
+
+4. 在Change Log中记录A/B测试结果和选择理由
+
+#### 当前Prompt版本
+
+- **ProjectFoundationAgent**: `project_foundation_v1.md`
+- **AssessmentFrameworkAgent**: `assessment_framework_v1.md`
+- **LearningBlueprintAgent**: `learning_blueprint_v1.md`
+
+完整的PHR管理指南参见：`backend/app/prompts/README.md`
+
+#### 禁止事项
+
+- ❌ 直接在Agent代码中修改Prompt而不同步更新PHR文件
+- ❌ 删除旧版本的PHR文件（除非有充分理由并记录）
+- ❌ 修改Prompt后不运行测试
+- ❌ 在Change Log中使用模糊描述（如"优化了Prompt"）
+
+#### 推荐做法
+
+- ✅ 每次Prompt修改都创建新版本
+- ✅ 详细记录修改原因和预期影响
+- ✅ 对比新旧版本的性能指标
+- ✅ 在测试中使用真实的课程案例验证质量
+- ✅ 保留所有版本作为历史参考
+
 ### 部署注意事项
 - 不提交API密钥到git
 - 生产环境使用环境变量管理配置
