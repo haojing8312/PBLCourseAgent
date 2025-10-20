@@ -89,27 +89,69 @@ function App() {
    * 打开项目（从列表进入课程设计视图）
    */
   const handleOpenProject = async (project: CourseProject) => {
-    // 加载项目数据到Store
-    setCourseInfo({
-      id: project.id,
-      title: project.title,
-      subject: project.subject,
-      gradeLevel: project.grade_level,
-      durationWeeks: project.duration_weeks,
-      description: project.description,
-    });
+    const loadingKey = 'loading-project';
 
-    // TODO: 从后端加载stage数据到Store
-    // await loadProjectData(project.id);
+    try {
+      // 显示加载提示
+      message.loading({ content: '正在加载项目数据...', key: loadingKey, duration: 0 });
 
-    // 切换到课程设计视图
-    setViewMode('course');
+      // 1. 清除旧数据
+      useCourseStore.getState().resetCourse();
+      console.log('[App] Opening existing project, cleared previous data');
+
+      // 2. 加载项目基本信息到Store
+      setCourseInfo({
+        id: project.id,
+        title: project.title,
+        subject: project.subject,
+        gradeLevel: project.grade_level,
+        durationWeeks: project.duration_weeks,
+        description: project.description,
+      });
+
+      // 3. 从后端加载完整的项目数据（包括stage数据）
+      const { getCourse } = await import('./services/courseService');
+      const fullProject = await getCourse(project.id);
+
+      // 4. 恢复三个阶段的数据到Store
+      const { setStageOneData, setStageTwoData, setStageThreeData } = useCourseStore.getState();
+
+      if (fullProject.stage_one_data) {
+        setStageOneData(fullProject.stage_one_data);
+        console.log('[App] Loaded Stage One data from backend');
+      }
+
+      if (fullProject.stage_two_data) {
+        setStageTwoData(fullProject.stage_two_data);
+        console.log('[App] Loaded Stage Two data from backend');
+      }
+
+      if (fullProject.stage_three_data) {
+        setStageThreeData(fullProject.stage_three_data);
+        console.log('[App] Loaded Stage Three data from backend');
+      }
+
+      // 5. 切换到课程设计视图
+      setViewMode('course');
+
+      // 成功提示
+      message.success({ content: '项目加载成功', key: loadingKey, duration: 2 });
+    } catch (error) {
+      console.error('[App] Failed to load project:', error);
+      message.error({
+        content: `项目加载失败: ${error instanceof Error ? error.message : '未知错误'}`,
+        key: loadingKey,
+        duration: 3
+      });
+    }
   };
 
   /**
    * 返回项目列表
    */
   const handleBackToList = () => {
+    // 清除当前课程数据（但不删除localStorage，只是重置内存状态）
+    // localStorage会在下次打开项目时被正确的数据覆盖
     setViewMode('list');
   };
 
@@ -118,6 +160,10 @@ function App() {
    */
   const handleCreateCourse = async (values: any) => {
     try {
+      // 0. 清除旧的课程数据（包括localStorage缓存）
+      useCourseStore.getState().resetCourse();
+      console.log('[App] Cleared previous course data');
+
       // 1. 先在后端创建课程记录
       const createdCourse = await createCourse({
         title: values.title,
@@ -303,32 +349,34 @@ function App() {
       );
     }
 
-    return (
-      <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-        新建课程
-      </Button>
-    );
+    // 列表视图时不显示按钮（在列表内已有"新建课程"按钮）
+    return null;
   };
 
   /**
    * 渲染课程设计视图
    */
   const renderCourseView = () => (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* 加载和错误提示 */}
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {/* 加载和错误提示 - 使用绝对定位，不占据布局空间 */}
       {isGenerating && (
         <div style={{
+          position: 'absolute',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
           textAlign: 'center',
           padding: SPACING.MD,
           background: COLORS.BG_CONTAINER,
-          marginBottom: SPACING.SM,
-          borderRadius: '8px'
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
         }}>
           <Space direction="vertical" size="large">
             <Spin size="large" />
             <div>
-              <p>正在生成课程方案...</p>
-              <p>进度: {Math.round(generationProgress)}%</p>
+              <p style={{ margin: 0 }}>正在生成课程方案...</p>
+              <p style={{ margin: '4px 0 0 0' }}>进度: {Math.round(generationProgress)}%</p>
             </div>
             <Button danger onClick={abortWorkflow}>
               中止生成
@@ -339,20 +387,25 @@ function App() {
 
       {generationError && (
         <div style={{
+          position: 'absolute',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
           padding: SPACING.SM,
           background: COLORS.BG_CONTAINER,
-          marginBottom: SPACING.SM,
           borderRadius: '8px',
-          border: '1px solid #ff4d4f'
+          border: '1px solid #ff4d4f',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
         }}>
           <p style={{ color: '#ff4d4f', margin: 0 }}>错误: {generationError}</p>
         </div>
       )}
 
       {/* 对话和预览区域 - 全屏宽度 */}
-      <Row gutter={[SPACING.SM, SPACING.SM]} style={{ flex: 1, minHeight: 0 }}>
+      <Row gutter={[SPACING.SM, SPACING.SM]} style={{ flex: 1, minHeight: 0, height: '100%' }}>
         {/* 左侧：对话面板 */}
-        <Col xs={24} lg={10} style={{ height: '100%' }}>
+        <Col xs={24} lg={10} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <ChatPanel
             currentStep={currentStep}
             courseId={courseInfo?.id}
@@ -360,12 +413,12 @@ function App() {
             title={`Stage ${currentStep} 对话`}
             showClearButton={true}
             showExportButton={true}
-            style={{ height: '100%' }}
+            style={{ flex: 1, minHeight: 0 }}
           />
         </Col>
 
         {/* 右侧：内容/编辑面板 */}
-        <Col xs={24} lg={14} style={{ height: '100%' }}>
+        <Col xs={24} lg={14} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           {isEditMode ? (
             <Suspense fallback={<LoadingFallback />}>
               <MarkdownEditor
@@ -373,7 +426,6 @@ function App() {
                 autoSave={true}
                 debounceMs={1000}
                 onSave={handleSaveMarkdown}
-                height="100%"
               />
             </Suspense>
           ) : (
@@ -384,7 +436,7 @@ function App() {
               stageThreeData={stageThreeData || undefined}
               isEditMode={isEditMode}
               onToggleEdit={handleToggleEdit}
-              style={{ height: '100%' }}
+              style={{ flex: 1, minHeight: 0 }}
             />
           )}
         </Col>
@@ -393,7 +445,7 @@ function App() {
   );
 
   return (
-    <Layout style={{ minHeight: '100vh', background: COLORS.BG_PAGE }}>
+    <Layout style={{ height: '100vh', overflow: 'hidden', background: COLORS.BG_PAGE }}>
       {/* 顶部导航栏 */}
       <AppHeader
         title={
@@ -410,22 +462,25 @@ function App() {
       />
 
       {/* 主内容区 */}
-      <Content style={{ padding: 0 }}>
+      <Content style={{ padding: 0, overflow: 'hidden', flex: 1 }}>
         {viewMode === 'list' ? (
-          <PageContainer maxWidth="normal" padding="MD">
-            <Suspense fallback={<LoadingFallback />}>
-              <ProjectListView
-                onOpenProject={handleOpenProject}
-                onCreateProject={() => setCreateModalVisible(true)}
-              />
-            </Suspense>
-          </PageContainer>
+          <div style={{ height: '100%', overflowY: 'auto' }}>
+            <PageContainer maxWidth="full" padding="MD">
+              <Suspense fallback={<LoadingFallback />}>
+                <ProjectListView
+                  onOpenProject={handleOpenProject}
+                  onCreateProject={() => setCreateModalVisible(true)}
+                />
+              </Suspense>
+            </PageContainer>
+          </div>
         ) : (
           <div style={{
             width: '100%',
-            height: 'calc(100vh - 64px)',
+            height: '100%',
             padding: SPACING.MD,
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            overflow: 'hidden'
           }}>
             {renderCourseView()}
           </div>
