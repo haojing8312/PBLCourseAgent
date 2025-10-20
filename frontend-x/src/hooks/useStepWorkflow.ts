@@ -6,6 +6,7 @@
 import {  useCallback, useRef } from 'react';
 import { useCourseStore } from '../stores/courseStore';
 import { streamWorkflow } from '../services/workflowService';
+import { updateStageOne, updateStageTwo, updateStageThree } from '../services/courseService';
 import type { WorkflowStreamResult } from '../services/workflowService';
 import type { WorkflowRequest } from '../types/course';
 
@@ -113,6 +114,9 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
    * 开始工作流生成
    */
   const startWorkflow = useCallback(async (request: WorkflowRequest) => {
+    const courseStore = useCourseStore.getState();
+    const courseId = courseStore.courseInfo?.id;
+
     try {
       // 重置状态
       setGenerating(true);
@@ -140,7 +144,7 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
           }
         },
 
-        onStageComplete: (data) => {
+        onStageComplete: async (data) => {
           console.log('[useStepWorkflow] Stage complete:', data);
 
           const stage = data.stage;
@@ -151,7 +155,7 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
             return;
           }
 
-          // 更新对应阶段的数据
+          // 更新对应阶段的前端Store数据
           switch (stage) {
             case 1:
               setStageOneData(result);
@@ -167,6 +171,31 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
               break;
             default:
               console.warn('[useStepWorkflow] Unknown stage:', stage);
+          }
+
+          // 保存到后端数据库（如果有courseId）
+          if (courseId) {
+            try {
+              switch (stage) {
+                case 1:
+                  await updateStageOne(courseId, result);
+                  console.log('[useStepWorkflow] Stage 1 saved to database');
+                  break;
+                case 2:
+                  await updateStageTwo(courseId, result);
+                  console.log('[useStepWorkflow] Stage 2 saved to database');
+                  break;
+                case 3:
+                  await updateStageThree(courseId, result);
+                  console.log('[useStepWorkflow] Stage 3 saved to database');
+                  break;
+              }
+            } catch (saveError) {
+              console.error(`[useStepWorkflow] Failed to save stage ${stage} to database:`, saveError);
+              // 不阻断工作流，只记录错误
+            }
+          } else {
+            console.warn('[useStepWorkflow] No courseId, skipping database save');
           }
 
           // 标记为完成

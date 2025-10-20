@@ -19,6 +19,7 @@ import { AppHeader, PageContainer } from './components/layout';
 import { COLORS, SPACING } from './constants/layout';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
+import { createCourse } from './services/courseService';
 import type { WorkflowRequest, CourseProject } from './types/course';
 import './App.css';
 
@@ -116,39 +117,48 @@ function App() {
    * 创建新课程并启动工作流
    */
   const handleCreateCourse = async (values: any) => {
-    const courseData = {
-      title: values.title,
-      subject: values.subject,
-      grade_level: values.gradeLevel,
-      duration_weeks: values.durationWeeks,
-      description: values.description,
-    };
-
-    // 保存到Store
-    setCourseInfo(courseData);
-
-    // 构建工作流请求 - 只生成Stage 1，用户确认后再生成后续阶段
-    const workflowRequest: WorkflowRequest = {
-      title: values.title,
-      subject: values.subject,
-      grade_level: values.gradeLevel,
-      duration_weeks: values.durationWeeks,
-      description: values.description,
-      stages_to_generate: [1], // 只生成Stage 1，符合UbD逆向设计的理念
-    };
-
-    // 关闭对话框
-    setCreateModalVisible(false);
-
-    // 切换到课程视图
-    setViewMode('course');
-
-    // 启动工作流
     try {
+      // 1. 先在后端创建课程记录
+      const createdCourse = await createCourse({
+        title: values.title,
+        subject: values.subject,
+        grade_level: values.gradeLevel,
+        duration_weeks: values.durationWeeks,
+        description: values.description,
+      });
+
+      // 2. 保存到前端Store（包含后端返回的ID）
+      setCourseInfo({
+        id: createdCourse.id,
+        title: createdCourse.title,
+        subject: createdCourse.subject,
+        gradeLevel: createdCourse.grade_level,
+        durationWeeks: createdCourse.duration_weeks,
+        description: createdCourse.description,
+      });
+
+      // 3. 构建工作流请求 - 只生成Stage 1，用户确认后再生成后续阶段
+      const workflowRequest: WorkflowRequest = {
+        title: values.title,
+        subject: values.subject,
+        grade_level: values.gradeLevel,
+        duration_weeks: values.durationWeeks,
+        description: values.description,
+        stages_to_generate: [1], // 只生成Stage 1，符合UbD逆向设计的理念
+      };
+
+      // 4. 关闭对话框
+      setCreateModalVisible(false);
+
+      // 5. 切换到课程视图
+      setViewMode('course');
+
+      // 6. 启动工作流
       await startWorkflow(workflowRequest);
-      message.success('课程生成已完成！');
+      message.success('课程创建成功！');
     } catch (error) {
-      message.error('课程生成失败，请重试');
+      message.error(`课程创建失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      console.error('Failed to create course:', error);
     }
   };
 
