@@ -167,12 +167,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         flexDirection: 'column',
         ...style,
       }}
-      bodyStyle={{
-        flex: 1,
-        overflow: 'hidden',
-        padding: 0,
-        display: 'flex',
-        flexDirection: 'column',
+      styles={{
+        body: {
+          flex: 1,
+          overflow: 'hidden',
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }
       }}
       className={className}
     >

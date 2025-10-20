@@ -136,10 +136,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         </Space>
       }
       style={{ height: '100%', ...style }}
-      bodyStyle={{
-        padding: 0,
-        height: `calc(100% - 57px)`,
-        overflow: 'hidden',
+      styles={{
+        body: {
+          padding: 0,
+          height: `calc(100% - 57px)`,
+          overflow: 'hidden',
+        }
       }}
     >
       <Tabs

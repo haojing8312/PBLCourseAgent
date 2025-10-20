@@ -356,7 +356,7 @@ export const HelpDialog: React.FC<HelpDialogProps> = ({
       footer={null}
       width={800}
       style={{ top: 20 }}
-      bodyStyle={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+      styles={{ body: { maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' } }}
     >
       <Tabs defaultActiveKey={defaultActiveKey}>
         <Tabs.TabPane
