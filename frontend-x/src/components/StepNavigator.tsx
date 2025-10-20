@@ -124,7 +124,7 @@ export const StepNavigator: React.FC<StepNavigatorProps> = ({
     return <CheckCircleOutlined style={{ fontSize: '20px' }} />;
   };
 
-  // 紧凑模式：显示完整阶段名称，不显示描述
+  // 紧凑模式：显示简短标题（阶段一/二/三）+ 描述（核心内容）
   if (compact) {
     return (
       <Steps
@@ -142,7 +142,8 @@ export const StepNavigator: React.FC<StepNavigatorProps> = ({
           return (
             <Step
               key={stepNumber}
-              title={step.title}
+              title={step.shortTitle}
+              description={step.description}
               icon={getStepIcon(stepNumber)}
               status={mapStepStatus(status)}
               style={{
