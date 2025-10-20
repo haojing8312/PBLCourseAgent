@@ -3,18 +3,13 @@
  * 集成所有组件，提供完整的课程设计工作流
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin } from 'antd';
 import { PlusOutlined, SaveOutlined, QuestionCircleOutlined, UnorderedListOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
-import { MarkdownEditor } from './components/MarkdownEditor';
 import { DownloadButton } from './components/DownloadButton';
-import { HelpDialog } from './components/HelpDialog';
-import { OnboardingOverlay } from './components/OnboardingOverlay';
-import { ProjectListView } from './components/ProjectListView';
-import { ChangeDetectionDialog } from './components/ChangeDetectionDialog';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
 import type { WorkflowRequest, CourseProject } from './types/course';
@@ -23,6 +18,22 @@ import './App.css';
 const { Header, Content } = Layout;
 
 type ViewMode = 'list' | 'course';
+
+// 懒加载组件 - 减少初始包大小，提升加载性能
+const MarkdownEditor = lazy(() => import('./components/MarkdownEditor').then(m => ({ default: m.MarkdownEditor })));
+const HelpDialog = lazy(() => import('./components/HelpDialog').then(m => ({ default: m.HelpDialog })));
+const OnboardingOverlay = lazy(() => import('./components/OnboardingOverlay').then(m => ({ default: m.OnboardingOverlay })));
+const ProjectListView = lazy(() => import('./components/ProjectListView').then(m => ({ default: m.ProjectListView })));
+const ChangeDetectionDialog = lazy(() => import('./components/ChangeDetectionDialog').then(m => ({ default: m.ChangeDetectionDialog })));
+
+/**
+ * 加载占位组件
+ */
+const LoadingFallback: React.FC = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '50px' }}>
+    <Spin size="large" />
+  </div>
+);
 
 function App() {
   // 视图模式 ('list' | 'course')
@@ -276,10 +287,12 @@ function App() {
       <Content style={{ padding: '24px', background: '#f0f2f5' }}>
         {viewMode === 'list' ? (
           /* 项目列表视图 */
-          <ProjectListView
-            onOpenProject={handleOpenProject}
-            onCreateProject={() => setCreateModalVisible(true)}
-          />
+          <Suspense fallback={<LoadingFallback />}>
+            <ProjectListView
+              onOpenProject={handleOpenProject}
+              onCreateProject={() => setCreateModalVisible(true)}
+            />
+          </Suspense>
         ) : (
           /* 课程设计视图 */
           <>
@@ -321,13 +334,15 @@ function App() {
               {/* 右侧：内容/编辑面板 */}
               <Col xs={24} lg={14} style={{ height: '100%' }}>
                 {isEditMode ? (
-                  <MarkdownEditor
-                    step={currentStep}
-                    autoSave={true}
-                    debounceMs={1000}
-                    onSave={handleSaveMarkdown}
-                    height="100%"
-                  />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <MarkdownEditor
+                      step={currentStep}
+                      autoSave={true}
+                      debounceMs={1000}
+                      onSave={handleSaveMarkdown}
+                      height="100%"
+                    />
+                  </Suspense>
                 ) : (
                   <ContentPanel
                     currentStep={currentStep}
@@ -415,35 +430,41 @@ function App() {
       </Modal>
 
       {/* 帮助对话框 */}
-      <HelpDialog
-        open={helpDialogOpen}
-        onClose={() => setHelpDialogOpen(false)}
-        defaultActiveKey={currentStep === 1 ? 'stage-one' : currentStep === 2 ? 'stage-two' : 'stage-three'}
-      />
+      <Suspense fallback={null}>
+        <HelpDialog
+          open={helpDialogOpen}
+          onClose={() => setHelpDialogOpen(false)}
+          defaultActiveKey={currentStep === 1 ? 'stage-one' : currentStep === 2 ? 'stage-two' : 'stage-three'}
+        />
+      </Suspense>
 
       {/* 新手引导 */}
-      <OnboardingOverlay
-        open={onboardingOpen}
-        onFinish={() => {
-          localStorage.setItem('onboarding-completed', 'true');
-          setOnboardingOpen(false);
-        }}
-      />
+      <Suspense fallback={null}>
+        <OnboardingOverlay
+          open={onboardingOpen}
+          onFinish={() => {
+            localStorage.setItem('onboarding-completed', 'true');
+            setOnboardingOpen(false);
+          }}
+        />
+      </Suspense>
 
       {/* 变更检测对话框 */}
-      <ChangeDetectionDialog
-        open={changeDetectionOpen}
-        changedStage={changedStage}
-        affectedStages={affectedStages}
-        onRegenerate={handleCascadeRegenerate}
-        onCancel={() => setChangeDetectionOpen(false)}
-        onSkip={() => {
-          setSkipChangeDetection(true);
-          setChangeDetectionOpen(false);
-          message.info('已跳过变更检测，本次会话将不再提示');
-        }}
-        loading={isGenerating}
-      />
+      <Suspense fallback={null}>
+        <ChangeDetectionDialog
+          open={changeDetectionOpen}
+          changedStage={changedStage}
+          affectedStages={affectedStages}
+          onRegenerate={handleCascadeRegenerate}
+          onCancel={() => setChangeDetectionOpen(false)}
+          onSkip={() => {
+            setSkipChangeDetection(true);
+            setChangeDetectionOpen(false);
+            message.info('已跳过变更检测，本次会话将不再提示');
+          }}
+          loading={isGenerating}
+        />
+      </Suspense>
     </Layout>
   );
 }
