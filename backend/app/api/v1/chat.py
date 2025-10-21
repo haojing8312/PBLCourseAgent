@@ -48,12 +48,17 @@ async def stream_chat_response(
     conversation_history: List[Dict[str, str]],
     current_step: int,
     course_info: Dict[str, Any],
-    stage_one_data: Optional[Dict[str, Any]],
-    stage_two_data: Optional[Dict[str, Any]],
-    stage_three_data: Optional[Dict[str, Any]],
+    stage_one_data: Optional[str],
+    stage_two_data: Optional[str],
+    stage_three_data: Optional[str],
 ):
     """
-    生成流式对话响应（SSE格式）
+    生成流式对话响应（SSE格式）- V3版本（接收 Markdown 字符串）
+
+    Args:
+        stage_one_data: Stage 1 Markdown字符串
+        stage_two_data: Stage 2 Markdown字符串
+        stage_three_data: Stage 3 Markdown字符串
 
     SSE格式：
     data: {"type": "chunk", "content": "文本片段"}\\n\\n

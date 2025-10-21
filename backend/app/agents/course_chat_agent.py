@@ -56,14 +56,19 @@ class CourseChatAgent:
         self,
         current_step: int,
         course_info: Optional[Dict[str, Any]] = None,
-        stage_one_data: Optional[Dict[str, Any]] = None,
-        stage_two_data: Optional[Dict[str, Any]] = None,
-        stage_three_data: Optional[Dict[str, Any]] = None,
+        stage_one_data: Optional[str] = None,
+        stage_two_data: Optional[str] = None,
+        stage_three_data: Optional[str] = None,
     ) -> str:
         """
-        构建系统提示词
+        构建系统提示词（V3版本 - 接收 Markdown 字符串）
 
         根据当前阶段和已有数据，动态构建上下文
+
+        Args:
+            stage_one_data: Stage One Markdown 字符串
+            stage_two_data: Stage Two Markdown 字符串
+            stage_three_data: Stage Three Markdown 字符串
         """
         # 基础身份定义
         prompt = """你是一位资深的课程设计专家，精通UbD（为理解而设计）逆向设计理论和PBL（项目式学习）教学法。
@@ -106,25 +111,25 @@ class CourseChatAgent:
 
 """
 
-        # 添加已有Stage数据作为上下文
+        # 添加已有Stage数据作为上下文（Markdown格式）
         if stage_one_data:
             prompt += f"""
-已完成 Stage 1 数据（预期学习结果）：
-{json.dumps(stage_one_data, ensure_ascii=False, indent=2)}
+已完成 Stage 1 数据（预期学习结果 - Markdown格式）：
+{stage_one_data}
 
 """
 
         if stage_two_data:
             prompt += f"""
-已完成 Stage 2 数据（评估框架）：
-{json.dumps(stage_two_data, ensure_ascii=False, indent=2)}
+已完成 Stage 2 数据（评估框架 - Markdown格式）：
+{stage_two_data}
 
 """
 
         if stage_three_data:
             prompt += f"""
-已完成 Stage 3 数据（学习蓝图）：
-{json.dumps(stage_three_data, ensure_ascii=False, indent=2)}
+已完成 Stage 3 数据（学习蓝图 - Markdown格式）：
+{stage_three_data}
 
 """
 
@@ -141,21 +146,21 @@ class CourseChatAgent:
         conversation_history: List[Dict[str, str]],
         current_step: int = 1,
         course_info: Optional[Dict[str, Any]] = None,
-        stage_one_data: Optional[Dict[str, Any]] = None,
-        stage_two_data: Optional[Dict[str, Any]] = None,
-        stage_three_data: Optional[Dict[str, Any]] = None,
+        stage_one_data: Optional[str] = None,
+        stage_two_data: Optional[str] = None,
+        stage_three_data: Optional[str] = None,
     ) -> AsyncIterator[str]:
         """
-        流式对话（SSE）
+        流式对话（SSE）- V3版本（接收 Markdown 字符串）
 
         Args:
             user_message: 用户消息
             conversation_history: 历史对话（不包含当前消息）
             current_step: 当前步骤
             course_info: 课程基本信息
-            stage_one_data: Stage 1数据
-            stage_two_data: Stage 2数据
-            stage_three_data: Stage 3数据
+            stage_one_data: Stage 1 Markdown字符串
+            stage_two_data: Stage 2 Markdown字符串
+            stage_three_data: Stage 3 Markdown字符串
 
         Yields:
             str: AI回复的文本片段（流式输出）
@@ -218,12 +223,12 @@ class CourseChatAgent:
         conversation_history: List[Dict[str, str]],
         current_step: int = 1,
         course_info: Optional[Dict[str, Any]] = None,
-        stage_one_data: Optional[Dict[str, Any]] = None,
-        stage_two_data: Optional[Dict[str, Any]] = None,
-        stage_three_data: Optional[Dict[str, Any]] = None,
+        stage_one_data: Optional[str] = None,
+        stage_two_data: Optional[str] = None,
+        stage_three_data: Optional[str] = None,
     ) -> str:
         """
-        非流式对话（一次性返回完整回复）
+        非流式对话（一次性返回完整回复）- V3版本（接收 Markdown 字符串）
 
         主要用于测试或特殊场景
         """
@@ -270,13 +275,12 @@ def get_chat_agent() -> CourseChatAgent:
     global _chat_agent_instance
 
     if _chat_agent_instance is None:
-        from app.core.config import get_settings
-        settings = get_settings()
+        from app.core.config import settings
 
         _chat_agent_instance = CourseChatAgent(
-            api_key=settings.AI_API_KEY,
-            model=settings.AI_MODEL,
-            base_url=settings.AI_BASE_URL,
+            api_key=settings.openai_api_key,
+            model=settings.openai_model,
+            base_url=settings.openai_base_url,
             temperature=0.7,  # 对话模式使用0.7
         )
 
