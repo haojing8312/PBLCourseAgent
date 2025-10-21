@@ -134,18 +134,18 @@ class ExportService:
 
     def export_for_download(
         self,
-        stage_one_data: Optional[Dict[str, Any]] = None,
-        stage_two_data: Optional[Dict[str, Any]] = None,
-        stage_three_data: Optional[Dict[str, Any]] = None,
+        stage_one_data: Optional[str] = None,
+        stage_two_data: Optional[str] = None,
+        stage_three_data: Optional[str] = None,
         course_info: Optional[Dict[str, Any]] = None,
     ) -> tuple[str, str]:
         """
-        导出用于下载的Markdown文件
+        导出用于下载的Markdown文件（V3版本 - Markdown字符串输入）
 
         Args:
-            stage_one_data: Stage One数据（可选）
-            stage_two_data: Stage Two数据（可选）
-            stage_three_data: Stage Three数据（可选）
+            stage_one_data: Stage One Markdown字符串（可选）
+            stage_two_data: Stage Two Markdown字符串（可选）
+            stage_three_data: Stage Three Markdown字符串（可选）
             course_info: 课程基本信息
 
         Returns:
@@ -154,25 +154,65 @@ class ExportService:
         if not course_info:
             course_info = {"title": "未命名课程"}
 
-        # 如果三个阶段都有，导出完整版
+        # 构建 Markdown 内容
+        markdown_parts = []
+
+        # 添加课程头部
+        title = course_info.get("title", "未命名课程")
+        markdown_parts.append(f"# {title}\n\n")
+
+        # 添加课程基本信息
+        if course_info.get("subject"):
+            markdown_parts.append(f"**学科**: {course_info['subject']}\n\n")
+        if course_info.get("grade_level"):
+            markdown_parts.append(f"**年级**: {course_info['grade_level']}\n\n")
+        if course_info.get("duration_weeks"):
+            markdown_parts.append(f"**课程时长**: {course_info['duration_weeks']}周\n\n")
+        if course_info.get("description"):
+            markdown_parts.append(f"**课程简介**: {course_info['description']}\n\n")
+
+        markdown_parts.append("---\n\n")
+
+        # 拼接各阶段的 Markdown 内容
+        if stage_one_data:
+            markdown_parts.append(stage_one_data)
+            markdown_parts.append("\n\n---\n\n")
+
+        if stage_two_data:
+            markdown_parts.append(stage_two_data)
+            markdown_parts.append("\n\n---\n\n")
+
+        if stage_three_data:
+            markdown_parts.append(stage_three_data)
+            markdown_parts.append("\n\n")
+
+        # 添加底部信息
+        from datetime import datetime
+
+        generation_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        markdown_parts.append("---\n\n")
+        markdown_parts.append(
+            "*本课程方案由 UbD-PBL 课程架构师生成*\n\n"
+            f"*生成时间: {generation_time}*\n"
+        )
+
+        markdown_content = "".join(markdown_parts)
+
+        # 确定文件名
         if stage_one_data and stage_two_data and stage_three_data:
-            markdown = self.export_to_markdown(
-                stage_one_data, stage_two_data, stage_three_data, course_info
-            )
-            filename = f"{course_info.get('title', '课程方案')}_完整版.md"
-
-        # 否则只导出已有的阶段
+            filename = f"{title}_完整版.md"
+        elif stage_one_data and stage_two_data:
+            filename = f"{title}_阶段一二.md"
         elif stage_one_data:
-            markdown = self.export_stage_one_only(stage_one_data, course_info)
-            filename = f"{course_info.get('title', '课程方案')}_阶段一.md"
-
+            filename = f"{title}_阶段一.md"
         else:
             raise ValueError("At least stage_one_data is required for export")
 
-        # 清理文件名中的非法字符
-        filename = "".join(c for c in filename if c.isalnum() or c in "._- ()")
+        logger.info(
+            f"Exported course '{title}' to Markdown ({len(markdown_content)} chars)"
+        )
 
-        return filename, markdown
+        return filename, markdown_content
 
 
 # 全局单例

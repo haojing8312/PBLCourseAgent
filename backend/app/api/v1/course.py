@@ -315,6 +315,7 @@ async def export_course_markdown(course_id: int, db: Session = Depends(get_db)):
         Markdown文件内容
     """
     from fastapi.responses import Response
+    from urllib.parse import quote
     from app.services.export_service import get_export_service
 
     course = db.query(CourseProject).filter(CourseProject.id == course_id).first()
@@ -336,7 +337,7 @@ async def export_course_markdown(course_id: int, db: Session = Depends(get_db)):
             "description": course.description,
         }
 
-        # 导出
+        # 导出（现在接收 Markdown 字符串）
         filename, markdown_content = export_service.export_for_download(
             stage_one_data=course.stage_one_data,
             stage_two_data=course.stage_two_data,
@@ -346,11 +347,14 @@ async def export_course_markdown(course_id: int, db: Session = Depends(get_db)):
 
         logger.info(f"Exported course {course_id} to Markdown ({len(markdown_content)} bytes)")
 
+        # 修复中文文件名编码问题（使用 RFC 2231 标准）
+        filename_encoded = quote(filename.encode('utf-8'))
+
         return Response(
-            content=markdown_content,
+            content=markdown_content.encode('utf-8'),
             media_type="text/markdown; charset=utf-8",
             headers={
-                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Disposition": f"attachment; filename*=UTF-8''{filename_encoded}",
             },
         )
 
