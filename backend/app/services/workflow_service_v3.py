@@ -39,9 +39,15 @@ class WorkflowServiceV3:
         duration_weeks: int = 12,
         description: str = "",
         stages_to_generate: list = None,
+        stage_one_data: str = None,
+        stage_two_data: str = None,
     ) -> AsyncGenerator[str, None]:
         """
         流式生成完整工作流
+
+        Args:
+            stage_one_data: 已有的Stage One Markdown数据（用于重新生成时提供）
+            stage_two_data: 已有的Stage Two Markdown数据（用于重新生成时提供）
 
         Yields:
             SSE格式的事件字符串
@@ -61,8 +67,8 @@ class WorkflowServiceV3:
                 },
             })
 
-            stage_one_data = None
-            stage_two_data = None
+            # 使用提供的数据（用于跳过已有阶段）
+            # stage_one_data 和 stage_two_data 已经作为参数传入（都是Markdown格式）
             stage_three_data = None
 
             course_info = {
@@ -74,7 +80,7 @@ class WorkflowServiceV3:
             }
 
             # ===== Stage 1: 确定预期学习结果 (Markdown版) =====
-            if 1 in stages_to_generate:
+            if 1 in stages_to_generate and not stage_one_data:
                 yield self._format_sse({
                     "event": "progress",
                     "data": {
@@ -119,7 +125,7 @@ class WorkflowServiceV3:
                 )
 
             # ===== Stage 2: 确定可接受的证据 =====
-            if 2 in stages_to_generate and stage_one_data:
+            if 2 in stages_to_generate and stage_one_data and not stage_two_data:
                 yield self._format_sse({
                     "event": "progress",
                     "data": {
@@ -143,23 +149,24 @@ class WorkflowServiceV3:
                     })
                     return
 
-                stage_two_data = result2["data"]
+                # 获取Markdown数据
+                stage_two_data = result2["markdown"]
 
                 yield self._format_sse({
                     "event": "stage_complete",
                     "data": {
                         "stage": 2,
-                        "result": stage_two_data,
+                        "markdown": stage_two_data,
                         "generation_time": result2["generation_time"],
                     },
                 })
 
                 logger.info(
-                    f"Stage 2 complete: Driving Question + "
-                    f"{len(stage_two_data.get('performance_tasks', []))} Performance Tasks"
+                    f"Stage 2 complete: Markdown generated ({len(stage_two_data)} chars)"
                 )
 
             # ===== Stage 3: 规划学习体验 =====
+            # 注意：Stage 3 现在接收 Stage 2 的 Markdown 数据
             if 3 in stages_to_generate and stage_one_data and stage_two_data:
                 yield self._format_sse({
                     "event": "progress",
@@ -172,7 +179,7 @@ class WorkflowServiceV3:
 
                 result3 = await self.agent3.generate(
                     stage_one_data=stage_one_data,
-                    stage_two_data=stage_two_data,
+                    stage_two_data=stage_two_data,  # 传递 Markdown 数据
                     course_info=course_info,
                 )
 
@@ -186,25 +193,20 @@ class WorkflowServiceV3:
                     })
                     return
 
-                stage_three_data = result3["data"]
-
-                total_activities = sum(
-                    len(phase.get("activities", []))
-                    for phase in stage_three_data.get("pbl_phases", [])
-                )
+                # 获取Markdown数据
+                stage_three_data = result3["markdown"]
 
                 yield self._format_sse({
                     "event": "stage_complete",
                     "data": {
                         "stage": 3,
-                        "result": stage_three_data,
+                        "markdown": stage_three_data,
                         "generation_time": result3["generation_time"],
                     },
                 })
 
                 logger.info(
-                    f"Stage 3 complete: {len(stage_three_data.get('pbl_phases', []))} Phases, "
-                    f"{total_activities} Activities"
+                    f"Stage 3 complete: Markdown generated ({len(stage_three_data)} chars)"
                 )
 
             # ===== 完成 =====

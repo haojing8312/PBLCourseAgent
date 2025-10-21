@@ -20,14 +20,14 @@ class CourseProject(Base):
     duration_weeks = Column(Integer, nullable=True)
     description = Column(Text, nullable=True)
 
-    # UbD Stage One: 确定预期学习结果 (G/U/Q/K/S)
-    stage_one_data = Column(JSON, nullable=True, comment="Stage One: Goals, Understandings, Questions, Knowledge, Skills")
+    # UbD Stage One: 确定预期学习结果 (G/U/Q/K/S) - Markdown格式
+    stage_one_data = Column(Text, nullable=True, comment="Stage One Markdown: Goals, Understandings, Questions, Knowledge, Skills")
 
-    # UbD Stage Two: 确定可接受的证据 (驱动性问题 + 表现性任务 + 评估量规)
-    stage_two_data = Column(JSON, nullable=True, comment="Stage Two: Driving Question, Performance Tasks, Rubrics")
+    # UbD Stage Two: 确定可接受的证据 (驱动性问题 + 表现性任务 + 评估量规) - Markdown格式
+    stage_two_data = Column(Text, nullable=True, comment="Stage Two Markdown: Driving Question, Performance Tasks, Rubrics")
 
-    # UbD Stage Three: 规划学习体验 (PBL 4阶段 + WHERETO)
-    stage_three_data = Column(JSON, nullable=True, comment="Stage Three: PBL Phases with Activities")
+    # UbD Stage Three: 规划学习体验 (PBL 4阶段 + WHERETO) - Markdown格式
+    stage_three_data = Column(Text, nullable=True, comment="Stage Three Markdown: PBL Phases with Activities")
 
     # 对话历史记录 - 用于User Story 3 (会话持久化)
     conversation_history = Column(

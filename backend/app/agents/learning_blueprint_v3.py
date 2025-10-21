@@ -16,14 +16,15 @@ logger = logging.getLogger(__name__)
 
 class LearningBlueprintAgentV3:
     """
-    学习蓝图Agent V3
+    学习蓝图Agent V3 - Markdown版
     实现UbD Stage Three: Plan Learning Experiences
+    直接生成Markdown格式文档，接收Markdown格式的Stage One和Stage Two数据
     """
 
     def __init__(self):
         self.agent_name = "The Planner"
         self.timeout = settings.agent3_timeout or 40
-        self.phr_version = "v2.0"
+        self.phr_version = "v3.0-markdown"
 
     def _load_phr_prompt(self) -> str:
         """
@@ -33,12 +34,12 @@ class LearningBlueprintAgentV3:
             Path(__file__).parent.parent
             / "prompts"
             / "phr"
-            / "learning_blueprint_v2.md"
+            / "learning_blueprint_v3_markdown.md"
         )
 
         if not phr_path.exists():
             logger.error(f"PHR file not found: {phr_path}")
-            raise FileNotFoundError(f"PHR v2 prompt file not found: {phr_path}")
+            raise FileNotFoundError(f"PHR v3-markdown prompt file not found: {phr_path}")
 
         with open(phr_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -59,7 +60,7 @@ class LearningBlueprintAgentV3:
                 raise ValueError("End of System Prompt not found")
 
             system_prompt = content[start_idx:end_idx].strip()
-            logger.info(f"Loaded PHR v2 prompt ({len(system_prompt)} chars)")
+            logger.info(f"Loaded PHR v3-markdown prompt ({len(system_prompt)} chars)")
             return system_prompt
 
         except Exception as e:
@@ -70,40 +71,30 @@ class LearningBlueprintAgentV3:
         """
         构建系统提示词
 
-        Prompt版本: backend/app/prompts/phr/learning_blueprint_v2.md
+        Prompt版本: backend/app/prompts/phr/learning_blueprint_v3_markdown.md
         """
         return self._load_phr_prompt()
 
     def _build_user_prompt(
         self,
-        stage_one_data: Dict[str, Any],
-        stage_two_data: Dict[str, Any],
+        stage_one_data: str,
+        stage_two_data: str,
         course_info: Dict[str, Any],
     ) -> str:
         """
-        构建用户提示词
+        构建用户提示词 - Markdown版本
 
         Args:
-            stage_one_data: Stage One数据 (G/U/Q/K/S)
-            stage_two_data: Stage Two数据 (驱动性问题 + 表现性任务)
+            stage_one_data: Stage One Markdown数据
+            stage_two_data: Stage Two Markdown数据
             course_info: 课程基本信息
         """
-        # 构建完整的输入数据
-        input_data = {
-            "stage_one_data": {
-                "understandings": stage_one_data.get("understandings", []),
-                "skills": stage_one_data.get("skills", []),
-                "knowledge": stage_one_data.get("knowledge", []),
-            },
-            "stage_two_data": {
-                "driving_question": stage_two_data.get("driving_question", ""),
-                "performance_tasks": stage_two_data.get("performance_tasks", []),
-            },
-            "course_info": course_info,
-        }
+        duration_weeks = course_info.get("duration_weeks", 12)
+        return f"""# STAGE ONE DATA (Markdown格式)
+{stage_one_data}
 
-        return f"""# STAGE ONE & TWO DATA
-{json.dumps(input_data, ensure_ascii=False, indent=2)}
+# STAGE TWO DATA (Markdown格式)
+{stage_two_data}
 
 # COURSE INFO
 {json.dumps(course_info, ensure_ascii=False, indent=2)}
@@ -112,41 +103,33 @@ class LearningBlueprintAgentV3:
 
 严格要求：
 1. 必须按4个PBL阶段组织：Launch → Build → Develop → Present
-2. 每个活动必须标注1-3个WHERETO原则
-3. 至少70%的活动必须标注linked_ubd_elements（引用Stage One的U/S/K索引）
-4. Performance Tasks的milestone_week必须有对应的任务提交活动
-5. 活动描述要具体可执行，不要模糊的"学习XX"
+2. 每个阶段包含多个具体活动，活动总数应该在12-20个之间
+3. 每个活动必须标注1-3个WHERETO原则
+4. 至少70%的活动必须标注linked UbD elements（U/S/K）
+5. Performance Tasks的milestone_week必须有对应的任务提交活动
+6. 活动描述要具体可执行，不要模糊的"学习XX"
+7. 课程总时长为 {duration_weeks}周，四个阶段合理分配
 
-直接返回JSON格式，不要任何额外说明。"""
+直接输出Markdown内容，不要任何包裹或额外说明。"""
 
     async def generate(
         self,
-        stage_one_data: Dict[str, Any],
-        stage_two_data: Dict[str, Any],
+        stage_one_data: str,
+        stage_two_data: str,
         course_info: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        生成Stage Three数据 (PBL学习蓝图)
+        生成Stage Three的Markdown文档 (PBL学习蓝图)
 
         Args:
-            stage_one_data: Stage One的完整数据
-            stage_two_data: Stage Two的完整数据
+            stage_one_data: Stage One的Markdown数据
+            stage_two_data: Stage Two的Markdown数据
             course_info: 课程基本信息 {title, duration_weeks, ...}
 
         Returns:
             {
                 "success": bool,
-                "data": {
-                    "pbl_phases": [
-                        {
-                            "phase_type": "launch",
-                            "phase_name": "项目启动",
-                            "duration_weeks": 2,
-                            "order": 0,
-                            "activities": [...]
-                        }
-                    ]
-                },
+                "markdown": str,  # Markdown文档字符串
                 "generation_time": float,
                 "model": str,
                 "error": str (if failed)
@@ -156,7 +139,7 @@ class LearningBlueprintAgentV3:
 
         try:
             logger.info(
-                f"Generating Stage Three for: {course_info.get('title', 'Unknown')}"
+                f"Generating Stage Three Markdown for: {course_info.get('title', 'Unknown')}"
             )
 
             system_prompt = self._build_system_prompt()
@@ -186,52 +169,32 @@ class LearningBlueprintAgentV3:
                     "model": model,
                 }
 
-            # 解析JSON响应
-            try:
-                content = response["content"]
-                # 提取JSON
-                if "```json" in content:
-                    json_start = content.find("```json") + 7
-                    json_end = content.find("```", json_start)
-                    content = content[json_start:json_end].strip()
-                elif "```" in content:
-                    json_start = content.find("```") + 3
-                    json_end = content.find("```", json_start)
-                    content = content[json_start:json_end].strip()
+            # 直接返回Markdown内容，无需JSON解析
+            markdown_content = response["content"].strip()
 
-                stage_three_data = json.loads(content)
+            # 移除可能的markdown代码块包裹
+            if markdown_content.startswith("```markdown"):
+                markdown_content = markdown_content[11:].strip()
+                if markdown_content.endswith("```"):
+                    markdown_content = markdown_content[:-3].strip()
+            elif markdown_content.startswith("```"):
+                markdown_content = markdown_content[3:].strip()
+                if markdown_content.endswith("```"):
+                    markdown_content = markdown_content[:-3].strip()
 
-                # 统计活动数量
-                total_activities = sum(
-                    len(phase.get("activities", []))
-                    for phase in stage_three_data.get("pbl_phases", [])
-                )
+            logger.info(
+                f"Stage Three Markdown generated successfully in {generation_time:.2f}s"
+            )
+            logger.info(
+                f"Generated markdown length: {len(markdown_content)} characters"
+            )
 
-                logger.info(
-                    f"Stage Three generated successfully in {generation_time:.2f}s"
-                )
-                logger.info(
-                    f"Generated: {len(stage_three_data.get('pbl_phases', []))} PBL Phases, "
-                    f"{total_activities} Activities"
-                )
-
-                return {
-                    "success": True,
-                    "data": stage_three_data,
-                    "generation_time": generation_time,
-                    "model": model,
-                }
-
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON parsing failed: {e}")
-                logger.error(f"Raw content: {response['content'][:500]}...")
-                return {
-                    "success": False,
-                    "error": f"Failed to parse AI response as JSON: {str(e)}",
-                    "generation_time": generation_time,
-                    "model": model,
-                    "raw_content": response["content"],
-                }
+            return {
+                "success": True,
+                "markdown": markdown_content,
+                "generation_time": generation_time,
+                "model": model,
+            }
 
         except Exception as e:
             logger.error(f"Agent execution failed: {e}", exc_info=True)

@@ -16,14 +16,15 @@ logger = logging.getLogger(__name__)
 
 class AssessmentFrameworkAgentV3:
     """
-    评估框架Agent V3
+    评估框架Agent V3 - Markdown版
     实现UbD Stage Two: Determine Acceptable Evidence
+    直接生成Markdown格式文档，无需JSON解析
     """
 
     def __init__(self):
         self.agent_name = "The Assessor"
         self.timeout = settings.agent2_timeout or 35
-        self.phr_version = "v2.0"
+        self.phr_version = "v3.0-markdown"
 
     def _load_phr_prompt(self) -> str:
         """
@@ -33,12 +34,12 @@ class AssessmentFrameworkAgentV3:
             Path(__file__).parent.parent
             / "prompts"
             / "phr"
-            / "assessment_framework_v2.md"
+            / "assessment_framework_v3_markdown.md"
         )
 
         if not phr_path.exists():
             logger.error(f"PHR file not found: {phr_path}")
-            raise FileNotFoundError(f"PHR v2 prompt file not found: {phr_path}")
+            raise FileNotFoundError(f"PHR v3-markdown prompt file not found: {phr_path}")
 
         with open(phr_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -59,7 +60,7 @@ class AssessmentFrameworkAgentV3:
                 raise ValueError("End of System Prompt not found")
 
             system_prompt = content[start_idx:end_idx].strip()
-            logger.info(f"Loaded PHR v2 prompt ({len(system_prompt)} chars)")
+            logger.info(f"Loaded PHR v3-markdown prompt ({len(system_prompt)} chars)")
             return system_prompt
 
         except Exception as e:
@@ -70,27 +71,23 @@ class AssessmentFrameworkAgentV3:
         """
         构建系统提示词
 
-        Prompt版本: backend/app/prompts/phr/assessment_framework_v2.md
+        Prompt版本: backend/app/prompts/phr/assessment_framework_v3_markdown.md
         """
         return self._load_phr_prompt()
 
     def _build_user_prompt(
-        self, stage_one_data: Dict[str, Any], course_info: Dict[str, Any]
+        self, stage_one_data: str, course_info: Dict[str, Any]
     ) -> str:
         """
-        构建用户提示词
+        构建用户提示词 - Markdown版本
 
         Args:
-            stage_one_data: Stage One数据 (G/U/Q/K/S)
+            stage_one_data: Stage One Markdown数据
             course_info: 课程基本信息
         """
-        user_input_json = {
-            "stage_one_data": stage_one_data,
-            "course_info": course_info,
-        }
-
-        return f"""# STAGE ONE DATA (来自前一阶段)
-{json.dumps(stage_one_data, ensure_ascii=False, indent=2)}
+        duration_weeks = course_info.get("duration_weeks", 12)
+        return f"""# STAGE ONE DATA (来自前一阶段 - Markdown格式)
+{stage_one_data}
 
 # COURSE INFO
 {json.dumps(course_info, ensure_ascii=False, indent=2)}
@@ -99,32 +96,28 @@ class AssessmentFrameworkAgentV3:
 
 严格要求：
 1. 驱动性问题必须包含真实情境、开放性和明确产出物
-2. 每个表现性任务必须有context和student_role
-3. linked_ubd_elements必须正确引用Stage One中的U/S/K的索引
-4. 每个任务的rubric必须有4个等级且描述清晰
-5. 里程碑周次要根据课程总时长合理分配
+2. 表现性任务至少3个，覆盖项目不同阶段
+3. 每个任务必须有context、role、deliverable
+4. 里程碑周次要根据课程总时长 {duration_weeks}周 合理分配
+5. 每个任务的rubric必须有2-3个维度，每个维度4个等级
+6. 确保所有任务都关联了Stage One的U/S/K元素
 
-直接返回JSON格式，不要任何额外说明。"""
+直接输出Markdown内容，不要任何包裹或额外说明。"""
 
     async def generate(
-        self, stage_one_data: Dict[str, Any], course_info: Dict[str, Any]
+        self, stage_one_data: str, course_info: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        生成Stage Two数据 (驱动性问题 + 表现性任务 + 评估量规)
+        生成Stage Two的Markdown文档 (驱动性问题 + 表现性任务 + 评估量规)
 
         Args:
-            stage_one_data: Stage One的完整数据 (G/U/Q/K/S)
+            stage_one_data: Stage One的Markdown数据
             course_info: 课程基本信息 {title, duration_weeks, ...}
 
         Returns:
             {
                 "success": bool,
-                "data": {
-                    "driving_question": str,
-                    "driving_question_context": str,
-                    "performance_tasks": [...],
-                    "other_evidence": [...]
-                },
+                "markdown": str,  # Markdown文档字符串
                 "generation_time": float,
                 "model": str,
                 "error": str (if failed)
@@ -134,7 +127,7 @@ class AssessmentFrameworkAgentV3:
 
         try:
             logger.info(
-                f"Generating Stage Two for: {course_info.get('title', 'Unknown')}"
+                f"Generating Stage Two Markdown for: {course_info.get('title', 'Unknown')}"
             )
 
             system_prompt = self._build_system_prompt()
@@ -162,46 +155,32 @@ class AssessmentFrameworkAgentV3:
                     "model": model,
                 }
 
-            # 解析JSON响应
-            try:
-                content = response["content"]
-                # 提取JSON
-                if "```json" in content:
-                    json_start = content.find("```json") + 7
-                    json_end = content.find("```", json_start)
-                    content = content[json_start:json_end].strip()
-                elif "```" in content:
-                    json_start = content.find("```") + 3
-                    json_end = content.find("```", json_start)
-                    content = content[json_start:json_end].strip()
+            # 直接返回Markdown内容，无需JSON解析
+            markdown_content = response["content"].strip()
 
-                stage_two_data = json.loads(content)
+            # 移除可能的markdown代码块包裹
+            if markdown_content.startswith("```markdown"):
+                markdown_content = markdown_content[11:].strip()
+                if markdown_content.endswith("```"):
+                    markdown_content = markdown_content[:-3].strip()
+            elif markdown_content.startswith("```"):
+                markdown_content = markdown_content[3:].strip()
+                if markdown_content.endswith("```"):
+                    markdown_content = markdown_content[:-3].strip()
 
-                logger.info(
-                    f"Stage Two generated successfully in {generation_time:.2f}s"
-                )
-                logger.info(
-                    f"Generated: Driving Question + "
-                    f"{len(stage_two_data.get('performance_tasks', []))} Performance Tasks"
-                )
+            logger.info(
+                f"Stage Two Markdown generated successfully in {generation_time:.2f}s"
+            )
+            logger.info(
+                f"Generated markdown length: {len(markdown_content)} characters"
+            )
 
-                return {
-                    "success": True,
-                    "data": stage_two_data,
-                    "generation_time": generation_time,
-                    "model": model,
-                }
-
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON parsing failed: {e}")
-                logger.error(f"Raw content: {response['content'][:500]}...")
-                return {
-                    "success": False,
-                    "error": f"Failed to parse AI response as JSON: {str(e)}",
-                    "generation_time": generation_time,
-                    "model": model,
-                    "raw_content": response["content"],
-                }
+            return {
+                "success": True,
+                "markdown": markdown_content,
+                "generation_time": generation_time,
+                "model": model,
+            }
 
         except Exception as e:
             logger.error(f"Agent execution failed: {e}", exc_info=True)

@@ -32,12 +32,12 @@ class WorkflowRequest(BaseModel):
         default=[1, 2, 3], description="需要生成的阶段 (1, 2, 3)"
     )
 
-    # Stage数据（如果用户修改过，重新生成时提供）
-    stage_one_data: Optional[Dict[str, Any]] = Field(
-        None, description="Stage One数据（修改后重新生成时提供）"
+    # Stage数据（如果用户修改过，重新生成时提供） - Markdown格式
+    stage_one_data: Optional[str] = Field(
+        None, description="Stage One Markdown数据（修改后重新生成时提供）"
     )
-    stage_two_data: Optional[Dict[str, Any]] = Field(
-        None, description="Stage Two数据（修改后重新生成时提供）"
+    stage_two_data: Optional[str] = Field(
+        None, description="Stage Two Markdown数据（修改后重新生成时提供）"
     )
 
 
@@ -71,6 +71,8 @@ async def stream_workflow_events(request: WorkflowRequest):
             duration_weeks=request.duration_weeks,
             description=request.description or "",
             stages_to_generate=request.stages_to_generate,
+            stage_one_data=request.stage_one_data,
+            stage_two_data=request.stage_two_data,
         ):
             yield sse_event
 
