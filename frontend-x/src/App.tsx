@@ -302,9 +302,9 @@ function App() {
       duration_weeks: courseInfo.durationWeeks || 12,
       description: courseInfo.description,
       stages_to_generate: [stage], // 只生成当前阶段
-      // 如果生成Stage 2或3，需要提供前置阶段的数据
-      stage_one_data: stage >= 2 ? stageOneData || undefined : undefined,
-      stage_two_data: stage >= 3 ? stageTwoData || undefined : undefined,
+      // 如果生成Stage 2或3，需要提供前置阶段的数据（Markdown字符串）
+      stage_one_data: stage >= 2 ? stageOneData ?? undefined : undefined,
+      stage_two_data: stage >= 3 ? stageTwoData ?? undefined : undefined,
     };
 
     try {
@@ -449,9 +449,9 @@ function App() {
           ) : (
             <ContentPanel
               currentStep={currentStep}
-              stageOneData={stageOneData || undefined}
-              stageTwoData={stageTwoData || undefined}
-              stageThreeData={stageThreeData || undefined}
+              stageOneData={stageOneData ?? undefined}
+              stageTwoData={stageTwoData ?? undefined}
+              stageThreeData={stageThreeData ?? undefined}
               isEditMode={isEditMode}
               onToggleEdit={handleToggleEdit}
               onGenerateNextStage={handleGenerateNextStage}

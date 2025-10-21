@@ -109,18 +109,18 @@ export async function deleteCourse(courseId: number): Promise<void> {
 }
 
 /**
- * 更新Stage One数据
+ * 更新Stage One数据 (Markdown)
  */
 export async function updateStageOne(
   courseId: number,
-  data: StageOneData
+  markdown: string
 ): Promise<CourseProject> {
   const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/stage-one`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ markdown }),
   });
 
   if (!response.ok) {
@@ -132,18 +132,18 @@ export async function updateStageOne(
 }
 
 /**
- * 更新Stage Two数据
+ * 更新Stage Two数据 (Markdown)
  */
 export async function updateStageTwo(
   courseId: number,
-  data: StageTwoData
+  markdown: string
 ): Promise<CourseProject> {
   const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/stage-two`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ markdown }),
   });
 
   if (!response.ok) {
@@ -155,18 +155,18 @@ export async function updateStageTwo(
 }
 
 /**
- * 更新Stage Three数据
+ * 更新Stage Three数据 (Markdown)
  */
 export async function updateStageThree(
   courseId: number,
-  data: StageThreeData
+  markdown: string
 ): Promise<CourseProject> {
   const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/stage-three`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ markdown }),
   });
 
   if (!response.ok) {
