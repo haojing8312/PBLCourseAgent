@@ -444,6 +444,7 @@ function App() {
                 autoSave={true}
                 debounceMs={1000}
                 onSave={handleSaveMarkdown}
+                onToggleEdit={handleToggleEdit}
               />
             </Suspense>
           ) : (

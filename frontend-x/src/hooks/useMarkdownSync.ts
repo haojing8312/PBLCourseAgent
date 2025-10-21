@@ -73,11 +73,8 @@ export function useMarkdownSync(
 
   const { stageMarkdowns, setStageMarkdown } = useCourseStore();
 
-  // 从Store获取初始值
-  const storeValue = stageMarkdowns[step] || '';
-
-  // 本地编辑状态
-  const [markdown, setMarkdownLocal] = useState(storeValue);
+  // 本地编辑状态（从Store获取初始值）
+  const [markdown, setMarkdownLocal] = useState(() => stageMarkdowns[step] || '');
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -109,10 +106,13 @@ export function useMarkdownSync(
     }
   }, [step, markdown, isDirty, onSave, setStageMarkdown]);
 
-  // 更新Markdown
+  // 更新Markdown（优化：减少依赖，避免频繁重新创建）
   const setMarkdown = useCallback((value: string) => {
     setMarkdownLocal(value);
-    setIsDirty(value !== storeValue);
+
+    // 使用最新的 storeValue 检查是否 dirty
+    const currentStoreValue = stageMarkdowns[step] || '';
+    setIsDirty(value !== currentStoreValue);
 
     // 清除旧的定时器
     if (debounceTimerRef.current) {
@@ -121,23 +121,39 @@ export function useMarkdownSync(
 
     // 如果启用自动保存，设置新的定时器
     if (autoSave) {
-      debounceTimerRef.current = setTimeout(() => {
-        save();
+      debounceTimerRef.current = setTimeout(async () => {
+        setIsSaving(true);
+        try {
+          // 保存到Store
+          setStageMarkdown(step, value);
+          // 调用后端保存回调
+          if (onSave) {
+            await onSave(step, value);
+          }
+          setIsDirty(false);
+          console.log(`[useMarkdownSync] Auto-saved markdown for step ${step}`);
+        } catch (error) {
+          console.error(`[useMarkdownSync] Failed to auto-save markdown for step ${step}:`, error);
+        } finally {
+          setIsSaving(false);
+        }
       }, debounceMs);
     }
-  }, [storeValue, autoSave, debounceMs, save]);
+  }, [step, stageMarkdowns, autoSave, debounceMs, setStageMarkdown, onSave]);
 
   // 重置为Store中的值
   const reset = useCallback(() => {
-    setMarkdownLocal(storeValue);
+    const currentStoreValue = stageMarkdowns[step] || '';
+    setMarkdownLocal(currentStoreValue);
     setIsDirty(false);
-  }, [storeValue]);
+  }, [step, stageMarkdowns]);
 
-  // 当step或storeValue变化时，重置本地状态
+  // 当step变化时，重置本地状态（优化：仅在 step 变化时重置，避免因 storeValue 变化导致的重置）
   useEffect(() => {
-    setMarkdownLocal(storeValue);
+    const currentStoreValue = stageMarkdowns[step] || '';
+    setMarkdownLocal(currentStoreValue);
     setIsDirty(false);
-  }, [step, storeValue]);
+  }, [step, stageMarkdowns]);
 
   // 清理定时器
   useEffect(() => {

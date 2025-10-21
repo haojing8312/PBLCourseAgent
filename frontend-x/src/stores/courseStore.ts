@@ -58,6 +58,10 @@ interface CourseState {
   stageThreeData: string | null;
   setStageThreeData: (markdown: string) => void;
 
+  // === 兼容性接口：数组访问方式 ===
+  stageMarkdowns: Record<number, string>; // {1: stageOneData, 2: stageTwoData, 3: stageThreeData}
+  setStageMarkdown: (step: number, markdown: string) => void;
+
   // === 编辑模式 ===
   isEditMode: boolean;
   setEditMode: (mode: boolean) => void;
@@ -108,6 +112,7 @@ export const useCourseStore = create<CourseState>()(
         stageOneData: null,
         stageTwoData: null,
         stageThreeData: null,
+        stageMarkdowns: {}, // 兼容性接口
         isEditMode: false,
         conversationHistory: [],
         isGenerating: false,
@@ -126,22 +131,42 @@ export const useCourseStore = create<CourseState>()(
           })),
 
         setStageOneData: (markdown) =>
-          set({
+          set((state) => ({
             stageOneData: markdown,
-            stepStatus: { ...get().stepStatus, 1: 'completed' },
-          }),
+            stageMarkdowns: { ...state.stageMarkdowns, 1: markdown },
+            stepStatus: { ...state.stepStatus, 1: 'completed' },
+          })),
 
         setStageTwoData: (markdown) =>
-          set({
+          set((state) => ({
             stageTwoData: markdown,
-            stepStatus: { ...get().stepStatus, 2: 'completed' },
-          }),
+            stageMarkdowns: { ...state.stageMarkdowns, 2: markdown },
+            stepStatus: { ...state.stepStatus, 2: 'completed' },
+          })),
 
         setStageThreeData: (markdown) =>
-          set({
+          set((state) => ({
             stageThreeData: markdown,
-            stepStatus: { ...get().stepStatus, 3: 'completed' },
-          }),
+            stageMarkdowns: { ...state.stageMarkdowns, 3: markdown },
+            stepStatus: { ...state.stepStatus, 3: 'completed' },
+          })),
+
+        setStageMarkdown: (step, markdown) => {
+          const state = get();
+          switch (step) {
+            case 1:
+              state.setStageOneData(markdown);
+              break;
+            case 2:
+              state.setStageTwoData(markdown);
+              break;
+            case 3:
+              state.setStageThreeData(markdown);
+              break;
+            default:
+              console.warn(`[courseStore] Invalid step: ${step}`);
+          }
+        },
 
         setEditMode: (mode) => set({ isEditMode: mode }),
 
@@ -188,6 +213,7 @@ export const useCourseStore = create<CourseState>()(
             stageOneData: null,
             stageTwoData: null,
             stageThreeData: null,
+            stageMarkdowns: {},
             isEditMode: false,
             conversationHistory: [],
             isGenerating: false,
@@ -206,6 +232,7 @@ export const useCourseStore = create<CourseState>()(
           stageOneData: state.stageOneData,
           stageTwoData: state.stageTwoData,
           stageThreeData: state.stageThreeData,
+          stageMarkdowns: state.stageMarkdowns,
           conversationHistory: state.conversationHistory,
           stageVersions: state.stageVersions,
         }),

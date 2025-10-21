@@ -3,14 +3,11 @@
  * 提供Markdown编辑和实时预览功能
  */
 
-import React, { useState } from 'react';
-import { Card, Tabs, Space, Button, Badge } from 'antd';
-import { EyeOutlined, EditOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
-import { MarkdownPreview } from './MarkdownPreview';
+import React, { useRef, useEffect } from 'react';
+import { Card, Space, Button, Badge } from 'antd';
+import { EyeOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
 import { useMarkdownSync, getSaveStatus, getSaveStatusColor } from '../hooks/useMarkdownSync';
 import './MarkdownEditor.css';
-
-const { TabPane } = Tabs;
 
 export interface MarkdownEditorProps {
   /** 当前步骤 (1-3) */
@@ -27,6 +24,9 @@ export interface MarkdownEditorProps {
 
   /** 保存回调 */
   onSave?: (step: number, markdown: string) => Promise<void>;
+
+  /** 切换编辑模式回调（退出编辑模式） */
+  onToggleEdit?: () => void;
 
   /** 自定义样式 */
   style?: React.CSSProperties;
@@ -57,10 +57,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   debounceMs = 1000,
   autoSave = false,
   onSave,
+  onToggleEdit,
   style,
   height: _deprecatedHeight,
 }) => {
-  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
+  // Textarea ref 用于恢复光标位置
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 保存光标位置
+  const cursorPositionRef = useRef<{ start: number; end: number } | null>(null);
 
   const {
     markdown,
@@ -75,6 +80,32 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     autoSave,
     onSave,
   });
+
+  /**
+   * 恢复光标位置
+   */
+  useEffect(() => {
+    if (textareaRef.current && cursorPositionRef.current) {
+      const { start, end } = cursorPositionRef.current;
+      textareaRef.current.setSelectionRange(start, end);
+    }
+  }, [markdown]);
+
+  /**
+   * 处理文本变化（保存光标位置）
+   */
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+
+    // 保存光标位置
+    cursorPositionRef.current = {
+      start: textarea.selectionStart,
+      end: textarea.selectionEnd,
+    };
+
+    // 更新内容
+    setMarkdown(textarea.value);
+  };
 
   /**
    * 手动保存
@@ -112,6 +143,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
       extra={
         <Space>
+          {onToggleEdit && (
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              onClick={onToggleEdit}
+            >
+              查看模式
+            </Button>
+          )}
           {isDirty && !autoSave && (
             <Button
               type="primary"
@@ -146,55 +186,25 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           flex: 1,
           minHeight: 0,
           overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
         }
       }}
     >
-      <Tabs
-        activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'edit' | 'preview')}
-        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-        tabBarStyle={{ paddingLeft: '16px', paddingRight: '16px', marginBottom: 0, flex: 'none' }}
-        className="markdown-editor-tabs"
-      >
-        <TabPane
-          tab={
-            <span>
-              <EditOutlined /> 编辑
-            </span>
-          }
-          key="edit"
-          style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}
-        >
-          <textarea
-            className="markdown-editor-textarea"
-            value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
-            placeholder="在此输入Markdown内容..."
-            style={{
-              width: '100%',
-              height: '100%',
-              resize: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </TabPane>
-
-        <TabPane
-          tab={
-            <span>
-              <EyeOutlined /> 预览
-            </span>
-          }
-          key="preview"
-          style={{ flex: 1, minHeight: 0, overflow: 'auto' }}
-        >
-          <div style={{ padding: '16px' }}>
-            <MarkdownPreview content={markdown} />
-          </div>
-        </TabPane>
-      </Tabs>
+      <textarea
+        ref={textareaRef}
+        className="markdown-editor-textarea"
+        value={markdown}
+        onChange={handleChange}
+        placeholder="在此输入Markdown内容..."
+        style={{
+          width: '100%',
+          height: '100%',
+          resize: 'none',
+          boxSizing: 'border-box',
+          border: 'none',
+          outline: 'none',
+          padding: '16px',
+        }}
+      />
     </Card>
   );
 };

@@ -146,8 +146,15 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
           )}
         </Space>
       }
-      style={{ height: '100%', ...style }}
-      styles={{ body: { overflowY: 'auto', padding: '24px' } }}
+      style={{ height: '100%', display: 'flex', flexDirection: 'column', ...style }}
+      styles={{
+        body: {
+          overflowY: 'auto',
+          padding: '24px',
+          flex: 1,
+          minHeight: 0
+        }
+      }}
     >
       {renderContent()}
     </Card>
