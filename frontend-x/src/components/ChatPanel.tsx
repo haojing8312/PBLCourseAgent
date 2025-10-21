@@ -46,6 +46,9 @@ export interface ChatPanelProps {
 
   /** 自定义CSS类名 */
   className?: string;
+
+  /** 当AI请求重新生成课程方案时的回调 */
+  onRegenerateRequest?: (stage: number, instructions: string) => void;
 }
 
 /**
@@ -162,6 +165,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   showExportButton = false,
   style,
   className,
+  onRegenerateRequest,
 }) => {
   const {
     messages,
@@ -175,6 +179,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     currentStep,
     courseId,
     autoSync,
+    onRegenerateRequest,
   });
 
   // 输入框引用

@@ -29,6 +29,8 @@ export interface UseChatConversationOptions {
   autoSync?: boolean;
   /** 课程ID（用于后端同步） */
   courseId?: number;
+  /** 当AI请求重新生成课程方案时的回调 */
+  onRegenerateRequest?: (stage: number, instructions: string) => void;
 }
 
 export interface UseChatConversationReturn {
@@ -86,7 +88,7 @@ export interface UseChatConversationReturn {
 export function useChatConversation(
   options: UseChatConversationOptions = {}
 ): UseChatConversationReturn {
-  const { currentStep, autoSync = false, courseId } = options;
+  const { currentStep, autoSync = false, courseId, onRegenerateRequest } = options;
 
   const {
     conversationHistory,
@@ -213,6 +215,14 @@ export function useChatConversation(
               setIsAIResponding(false);
               setStreamingMessage('');
             },
+            onArtifact: (artifact) => {
+              console.log('[useChatConversation] Received artifact event:', artifact);
+
+              // 调用上层提供的regenerate回调
+              if (artifact.action === 'regenerate' && onRegenerateRequest) {
+                onRegenerateRequest(artifact.stage, artifact.instructions);
+              }
+            },
           }
         );
 
@@ -223,7 +233,7 @@ export function useChatConversation(
         setStreamingMessage('');
       }
     },
-    [currentStep, autoSync, courseId, addMessageToStore, conversationHistory, streamingMessage]
+    [currentStep, autoSync, courseId, addMessageToStore, conversationHistory, streamingMessage, onRegenerateRequest]
   );
 
   /**

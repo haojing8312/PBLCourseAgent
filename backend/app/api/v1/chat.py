@@ -10,6 +10,7 @@ from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 import json
 import logging
+import re
 
 from app.core.database import get_db
 from app.models.course_project import CourseProject
@@ -53,7 +54,7 @@ async def stream_chat_response(
     stage_three_data: Optional[str],
 ):
     """
-    生成流式对话响应（SSE格式）- V3版本（接收 Markdown 字符串）
+    生成流式对话响应（SSE格式）- V4版本（支持Artifact事件）
 
     Args:
         stage_one_data: Stage 1 Markdown字符串
@@ -62,6 +63,7 @@ async def stream_chat_response(
 
     SSE格式：
     data: {"type": "chunk", "content": "文本片段"}\\n\\n
+    data: {"type": "artifact", "action": "regenerate", "stage": 1, "instructions": "..."}\\n\\n
     data: {"type": "done"}\\n\\n
     """
     try:
@@ -69,6 +71,9 @@ async def stream_chat_response(
 
         # 开始事件
         yield f"data: {json.dumps({'type': 'start'}, ensure_ascii=False)}\n\n"
+
+        # 累积完整的AI回复（用于检测REGENERATE标记）
+        full_response = ""
 
         # 流式输出AI回复
         async for chunk in chat_agent.chat_stream(
@@ -80,8 +85,30 @@ async def stream_chat_response(
             stage_two_data=stage_two_data,
             stage_three_data=stage_three_data,
         ):
+            # 累积完整回复
+            full_response += chunk
+
             # 发送文本块
             yield f"data: {json.dumps({'type': 'chunk', 'content': chunk}, ensure_ascii=False)}\n\n"
+
+        # 检测是否需要重新生成
+        # 格式：[REGENERATE:STAGE_X:修改说明]
+        regenerate_match = re.match(r'\[REGENERATE:STAGE_(\d+):(.*?)\]', full_response)
+
+        if regenerate_match:
+            stage = int(regenerate_match.group(1))
+            instructions = regenerate_match.group(2).strip()
+
+            logger.info(f"[ChatAPI] Detected regenerate intent: Stage {stage}, instructions: {instructions}")
+
+            # 发送artifact事件
+            artifact_event = {
+                'type': 'artifact',
+                'action': 'regenerate',
+                'stage': stage,
+                'instructions': instructions
+            }
+            yield f"data: {json.dumps(artifact_event, ensure_ascii=False)}\n\n"
 
         # 完成事件
         yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"

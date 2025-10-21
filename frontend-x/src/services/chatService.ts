@@ -19,9 +19,13 @@ export interface ChatRequest {
 }
 
 export interface ChatStreamEvent {
-  type: 'start' | 'chunk' | 'done' | 'error';
+  type: 'start' | 'chunk' | 'done' | 'error' | 'artifact';
   content?: string;
   message?: string;
+  // Artifact事件专用字段
+  action?: 'regenerate';
+  stage?: number;
+  instructions?: string;
 }
 
 export interface ChatStreamHandlers {
@@ -29,6 +33,7 @@ export interface ChatStreamHandlers {
   onChunk?: (content: string) => void;
   onDone?: () => void;
   onError?: (error: string) => void;
+  onArtifact?: (artifact: { action: string; stage: number; instructions: string }) => void;
 }
 
 export interface ChatStreamResult {
@@ -129,6 +134,18 @@ export async function streamChat(
                     break;
                   case 'error':
                     handlers.onError?.(event.message || 'Unknown error');
+                    break;
+                  case 'artifact':
+                    // 处理artifact事件（重新生成课程方案）
+                    if (event.action && event.stage && event.instructions) {
+                      handlers.onArtifact?.({
+                        action: event.action,
+                        stage: event.stage,
+                        instructions: event.instructions
+                      });
+                    } else {
+                      console.warn('[ChatService] Invalid artifact event:', event);
+                    }
                     break;
                   default:
                     console.warn('[ChatService] Unknown event type:', event.type);

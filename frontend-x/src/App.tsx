@@ -335,6 +335,32 @@ function App() {
   };
 
   /**
+   * 【新增】处理AI对话中的重新生成请求
+   * 当用户在对话中要求修改课程方案时触发
+   */
+  const handleRegenerateFromChat = async (stage: number, instructions: string) => {
+    console.log(`[App] Regenerating Stage ${stage} based on chat request`);
+    console.log(`[App] Instructions: ${instructions}`);
+
+    // 1. 显示提示信息
+    message.info({
+      content: `AI正在根据您的要求重新生成 Stage ${stage}...`,
+      duration: 3,
+    });
+
+    // 2. 切换到对应阶段（如果当前不在该阶段）
+    if (currentStep !== stage) {
+      useCourseStore.getState().setCurrentStep(stage);
+      console.log(`[App] Switched to Stage ${stage}`);
+    }
+
+    // 3. 调用现有的生成方法触发重新生成
+    // 注意：这里会使用现有的Agent重新生成整个Stage
+    // 未来可以扩展为支持局部修改（根据instructions）
+    await handleGenerateStage(stage);
+  };
+
+  /**
    * 渲染Header中间区域（步骤导航）
    */
   const renderHeaderCenter = () => {
@@ -432,6 +458,7 @@ function App() {
             showClearButton={true}
             showExportButton={true}
             style={{ flex: 1, minHeight: 0 }}
+            onRegenerateRequest={handleRegenerateFromChat}
           />
         </Col>
 
