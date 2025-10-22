@@ -219,6 +219,123 @@ uv run pytest app/tests/test_core_workflow.py::test_new_feature -v
 uv run pytest app/tests/test_core_workflow.py -v
 ```
 
+## 🚨 真实案例分析：防止生产事故
+
+### 案例1: "local variable 'time' referenced before assignment" (2025-10-22)
+
+#### 问题现象
+
+用户在生成Stage 1时遇到错误：
+
+```
+useStepWorkflow.ts:221 [useStepWorkflow] Error: {
+  message: "local variable 'time' referenced before assignment",
+  stage: null
+}
+```
+
+#### 根本原因分析
+
+**代码层面**：
+```python
+# backend/app/agents/project_foundation_v3.py
+async def generate_stream(self, ...):
+    start_time = time.time()  # Line 252 - 尝试使用time模块
+    ...
+    import time              # Line 266 - 重复import！
+    start_stream = time.time()
+```
+
+当函数内有 `import time` 语句时，Python将 `time` 视为**局部变量**。但在 import 执行前（第252行），就尝试使用 `time.time()`，导致 "referenced before assignment" 错误。
+
+**系统层面**：
+- 代码文件已修复（删除了第266行的重复import）
+- 但用户的前端连接到**旧的后端服务进程**（端口8000）
+- 旧服务器进程缓存了bug代码，继续返回错误
+
+#### 为什么测试没有提前发现？
+
+**原因**：旧版测试只验证事件存在，不验证错误内容。
+
+**改进**：新版 `test_03_generate_stage_one()` 增加了错误检测：
+
+```python
+# 🔑 关键断言：检测Python变量错误
+for error_event in error_events:
+    error_msg = error_event.get('data', {}).get('message', '')
+
+    if "time" in error_msg.lower() and "referenced before assignment" in error_msg.lower():
+        pytest.fail(
+            f"❌ 检测到Python变量作用域错误！\n"
+            f"根本原因：函数内有重复的 'import time' 语句\n"
+            f"解决方法：删除函数内的import，保留文件顶部的import\n"
+        )
+```
+
+#### 完整解决方案
+
+**步骤1：确认代码已修复**
+
+```bash
+cd backend
+grep -n "import time" app/agents/project_foundation_v3.py
+```
+
+✅ 正确：只在第6行有一个 `import time`
+❌ 错误：函数内部（第250行附近）也有 `import time`
+
+**步骤2：停止旧服务进程**
+
+```bash
+# Windows: 查找占用8000端口的进程
+netstat -ano | findstr :8000
+# 输出：TCP    0.0.0.0:8000    0.0.0.0:0    LISTENING    17092
+
+# 停止进程（替换为实际PID）
+taskkill /F /PID 17092
+
+# Linux/Mac
+lsof -ti:8000 | xargs kill -9
+```
+
+**步骤3：启动新服务**
+
+```bash
+cd backend
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**步骤4：运行测试验证**
+
+```bash
+# 运行增强版测试（包含错误检测）
+cd backend
+uv run pytest app/tests/test_core_workflow.py::TestCoreWorkflow::test_03_generate_stage_one -v -s
+```
+
+**预期结果**：
+```
+✓ Stage 1生成成功（收到 632 个progress事件，真正的流式响应！）
+```
+
+如果测试失败并显示 "❌ 检测到Python变量作用域错误"，说明代码仍有问题。
+
+#### 教训总结
+
+1. **服务器重启的重要性**
+   - 修改代码后，必须完全停止旧进程，启动新进程
+   - uvicorn的 `--reload` 机制有时不会重载已存在的进程
+
+2. **测试必须验证错误场景**
+   - 不仅要测试成功路径，也要测试失败路径
+   - 错误消息应该被测试捕获和验证
+
+3. **数据结构修改需要完整检查清单**
+   - 不能只改一处，必须同步所有相关位置
+   - 使用检查清单防止遗漏
+
+---
+
 ## 常见问题
 
 ### Q: 测试失败，提示"Field required: duration_weeks"

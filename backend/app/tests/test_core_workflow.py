@@ -113,10 +113,12 @@ class TestCoreWorkflow:
 
     def test_03_generate_stage_one(self):
         """
-        测试3: 生成Stage 1（项目基础）
+        测试3: 生成Stage 1（项目基础） - 增强版流式验证
 
         验证点：
         - Agent能正确处理新的时长字段
+        - **必须是真正的流式响应（多个progress事件）**
+        - **检测"local variable 'time' referenced before assignment"错误**
         - 返回Markdown格式的Stage 1数据
         - 生成内容包含课程时长信息
         """
@@ -140,6 +142,10 @@ class TestCoreWorkflow:
 
         # 流式响应，读取所有事件
         events = []
+        progress_count = 0
+        error_events = []
+        last_preview_length = 0
+
         for line in response.iter_lines():
             if line:
                 # TestClient的iter_lines()已经返回字符串，不需要decode
@@ -147,6 +153,56 @@ class TestCoreWorkflow:
                 if line_str.startswith('data: '):
                     event_data = json.loads(line_str[6:])
                     events.append(event_data)
+
+                    event_type = event_data.get('event')
+
+                    # 统计progress事件
+                    if event_type == 'progress':
+                        progress_count += 1
+                        data = event_data.get('data', {})
+
+                        # 验证markdown_preview持续增长
+                        preview = data.get('markdown_preview', '')
+                        current_length = len(preview)
+
+                        assert current_length >= last_preview_length, (
+                            f"❌ markdown_preview应该持续增长！"
+                            f"Previous: {last_preview_length}, Current: {current_length}"
+                        )
+                        last_preview_length = current_length
+
+                    # 收集错误事件
+                    elif event_type == 'error':
+                        error_events.append(event_data)
+
+        # 🔑 关键断言1：检测Python变量错误
+        for error_event in error_events:
+            error_msg = error_event.get('data', {}).get('message', '')
+
+            if "time" in error_msg.lower() and "referenced before assignment" in error_msg.lower():
+                pytest.fail(
+                    f"\n\n❌ 检测到Python变量作用域错误！\n"
+                    f"错误信息: {error_msg}\n\n"
+                    f"💡 根本原因：\n"
+                    f"   在 project_foundation_v3.py 的 generate_stream() 方法中，\n"
+                    f"   有重复的 'import time' 语句在函数内部。\n\n"
+                    f"🔧 解决方法：\n"
+                    f"   1. 检查 backend/app/agents/project_foundation_v3.py\n"
+                    f"   2. 在 generate_stream() 方法内部搜索 'import time'\n"
+                    f"   3. 删除函数内的 import 语句（保留文件顶部的 import time）\n"
+                    f"   4. 重启后端服务器\n"
+                )
+
+        # 🔑 关键断言2：必须是真正的流式（多个progress事件）
+        assert progress_count > 10, (
+            f"\n\n❌ 只收到 {progress_count} 个progress事件，不是真正的流式！\n"
+            f"真正的流式应该有数十甚至数百个progress事件。\n\n"
+            f"可能的原因：\n"
+            f"1. openai_client.py 的 generate_response_stream() 缺少 stream=True\n"
+            f"2. Agent的generate_stream()方法在batching（如 if chunk_count % 5）\n"
+            f"3. workflow_service_v3.py 没有正确转发每个progress事件\n\n"
+            f"请检查以上三个位置的代码。\n"
+        )
 
         # 验证至少有开始和完成事件
         event_types = [e.get('event') for e in events]
@@ -164,7 +220,7 @@ class TestCoreWorkflow:
             assert 'G:' in markdown or '迁移目标' in markdown, "缺少迁移目标"
             assert 'U:' in markdown or '持续理解' in markdown, "缺少持续理解"
 
-        print(f"\n✓ Stage 1生成成功")
+        print(f"\n✓ Stage 1生成成功（收到 {progress_count} 个progress事件，真正的流式响应！）")
 
     def test_04_export_course(self):
         """

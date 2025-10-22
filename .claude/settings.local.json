@@ -74,7 +74,14 @@
       "Bash(for i in {14..46})",
       "Bash(do sed -i \"s/- \\[ \\] T0*$i /- [x] T0*$i /\" tasks.md)",
       "Bash(done)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(sqlite3:*)",
+      "Bash(tasklist:*)",
+      "Bash(test:*)",
+      "Bash(awk:*)",
+      "Bash(tee:*)",
+      "Bash(powershell \"Stop-Process -Id 17092 -Force\")",
+      "WebFetch(domain:medium.com)"
     ],
     "deny": [],
     "ask": []
