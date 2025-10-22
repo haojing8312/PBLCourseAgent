@@ -27,7 +27,11 @@ export interface CourseInfo {
   title: string;
   subject?: string;
   gradeLevel?: string;
-  durationWeeks?: number;
+
+  // 课程时长 - 灵活方案
+  totalClassHours?: number;  // 总课时数（按45分钟标准课时）
+  scheduleDescription?: string;  // 上课周期描述
+
   description?: string;
 }
 

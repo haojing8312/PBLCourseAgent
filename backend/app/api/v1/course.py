@@ -25,7 +25,11 @@ class CourseCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     subject: Optional[str] = None
     grade_level: Optional[str] = None
-    duration_weeks: Optional[int] = Field(None, ge=1, le=52)
+
+    # 课程时长 - 灵活方案
+    total_class_hours: Optional[int] = Field(None, ge=1, description="总课时数（按45分钟标准课时）")
+    schedule_description: Optional[str] = Field(None, description="上课周期描述，例如：共4周，每周1次，一次半天3个小时")
+
     description: Optional[str] = None
 
 
@@ -35,7 +39,11 @@ class CourseUpdateRequest(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     subject: Optional[str] = None
     grade_level: Optional[str] = None
-    duration_weeks: Optional[int] = Field(None, ge=1, le=52)
+
+    # 课程时长 - 灵活方案
+    total_class_hours: Optional[int] = Field(None, ge=1, description="总课时数（按45分钟标准课时）")
+    schedule_description: Optional[str] = Field(None, description="上课周期描述")
+
     description: Optional[str] = None
 
 
@@ -66,7 +74,11 @@ class CourseResponse(BaseModel):
     title: str
     subject: Optional[str]
     grade_level: Optional[str]
-    duration_weeks: Optional[int]
+
+    # 课程时长 - 灵活方案
+    total_class_hours: Optional[int]
+    schedule_description: Optional[str]
+
     description: Optional[str]
     stage_one_data: Optional[str]  # Markdown字符串
     stage_two_data: Optional[str]  # Markdown字符串
@@ -95,7 +107,8 @@ def create_course(request: CourseCreateRequest, db: Session = Depends(get_db)):
             title=request.title,
             subject=request.subject,
             grade_level=request.grade_level,
-            duration_weeks=request.duration_weeks,
+            total_class_hours=request.total_class_hours,
+            schedule_description=request.schedule_description,
             description=request.description,
             conversation_history=[],  # 初始化为空列表
         )
@@ -333,7 +346,8 @@ async def export_course_markdown(course_id: int, db: Session = Depends(get_db)):
             "title": course.title,
             "subject": course.subject,
             "grade_level": course.grade_level,
-            "duration_weeks": course.duration_weeks,
+            "total_class_hours": course.total_class_hours,
+            "schedule_description": course.schedule_description,
             "description": course.description,
         }
 

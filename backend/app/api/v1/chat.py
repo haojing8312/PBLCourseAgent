@@ -173,7 +173,8 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
             "title": course.title,
             "subject": course.subject,
             "grade_level": course.grade_level,
-            "duration_weeks": course.duration_weeks,
+            "total_class_hours": course.total_class_hours,
+            "schedule_description": course.schedule_description,
             "description": course.description,
         }
 
@@ -232,7 +233,8 @@ async def chat_non_stream(request: ChatRequest, db: Session = Depends(get_db)):
             "title": course.title,
             "subject": course.subject,
             "grade_level": course.grade_level,
-            "duration_weeks": course.duration_weeks,
+            "total_class_hours": course.total_class_hours,
+            "schedule_description": course.schedule_description,
             "description": course.description,
         }
 

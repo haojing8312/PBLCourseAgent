@@ -166,8 +166,10 @@ class ExportService:
             markdown_parts.append(f"**学科**: {course_info['subject']}\n\n")
         if course_info.get("grade_level"):
             markdown_parts.append(f"**年级**: {course_info['grade_level']}\n\n")
-        if course_info.get("duration_weeks"):
-            markdown_parts.append(f"**课程时长**: {course_info['duration_weeks']}周\n\n")
+        if course_info.get("total_class_hours"):
+            markdown_parts.append(f"**总课时**: {course_info['total_class_hours']}课时\n\n")
+        if course_info.get("schedule_description"):
+            markdown_parts.append(f"**上课周期**: {course_info['schedule_description']}\n\n")
         if course_info.get("description"):
             markdown_parts.append(f"**课程简介**: {course_info['description']}\n\n")
 

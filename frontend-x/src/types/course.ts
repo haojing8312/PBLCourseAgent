@@ -122,7 +122,11 @@ export interface CourseProject {
   title: string;
   subject?: string;
   grade_level?: string;
-  duration_weeks: number;
+
+  // 课程时长 - 灵活方案
+  total_class_hours?: number;  // 总课时数（按45分钟标准课时）
+  schedule_description?: string;  // 上课周期描述
+
   description?: string;
 
   // UbD三阶段数据 - Markdown版本
@@ -149,7 +153,11 @@ export interface WorkflowRequest {
   title: string;
   subject?: string;
   grade_level?: string;
-  duration_weeks: number;
+
+  // 课程时长 - 灵活方案
+  total_class_hours?: number;
+  schedule_description?: string;
+
   description?: string;
   stages_to_generate?: number[]; // [1, 2, 3]
   stage_one_data?: string; // Stage One Markdown（修改后重新生成时提供）

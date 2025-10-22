@@ -24,7 +24,11 @@ class WorkflowRequest(BaseModel):
     title: str = Field(..., description="课程名称")
     subject: Optional[str] = Field(None, description="学科领域")
     grade_level: Optional[str] = Field(None, description="年级水平")
-    duration_weeks: int = Field(..., description="课程时长（周）", ge=1, le=52)
+
+    # 课程时长 - 灵活方案
+    total_class_hours: Optional[int] = Field(None, ge=1, description="总课时数（按45分钟标准课时）")
+    schedule_description: Optional[str] = Field(None, description="上课周期描述，例如：共4周，每周1次，一次半天3个小时")
+
     description: Optional[str] = Field(None, description="课程简介")
 
     # 生成控制
@@ -68,7 +72,8 @@ async def stream_workflow_events(request: WorkflowRequest):
             title=request.title,
             subject=request.subject or "",
             grade_level=request.grade_level or "",
-            duration_weeks=request.duration_weeks,
+            total_class_hours=request.total_class_hours,
+            schedule_description=request.schedule_description or "",
             description=request.description or "",
             stages_to_generate=request.stages_to_generate,
             stage_one_data=request.stage_one_data,

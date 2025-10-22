@@ -36,7 +36,8 @@ class WorkflowServiceV3:
         title: str,
         subject: str = "",
         grade_level: str = "",
-        duration_weeks: int = 12,
+        total_class_hours: int = None,
+        schedule_description: str = "",
         description: str = "",
         stages_to_generate: list = None,
         stage_one_data: str = None,
@@ -75,11 +76,12 @@ class WorkflowServiceV3:
                 "title": title,
                 "subject": subject,
                 "grade_level": grade_level,
-                "duration_weeks": duration_weeks,
+                "total_class_hours": total_class_hours,
+                "schedule_description": schedule_description,
                 "description": description,
             }
 
-            # ===== Stage 1: 确定预期学习结果 (Markdown版) =====
+            # ===== Stage 1: 确定预期学习结果 (Markdown版 + 流式) =====
             if 1 in stages_to_generate and not stage_one_data:
                 yield self._format_sse({
                     "event": "progress",
@@ -90,41 +92,52 @@ class WorkflowServiceV3:
                     },
                 })
 
-                result1 = await self.agent1.generate(
+                # 使用流式生成
+                async for event in self.agent1.generate_stream(
                     title=title,
                     subject=subject,
                     grade_level=grade_level,
-                    duration_weeks=duration_weeks,
+                    total_class_hours=total_class_hours,
+                    schedule_description=schedule_description,
                     description=description,
-                )
+                ):
+                    if event["type"] == "progress":
+                        # 转发进度事件（包含当前markdown内容）
+                        yield self._format_sse({
+                            "event": "progress",
+                            "data": {
+                                "stage": 1,
+                                "progress": event["progress"],
+                                "message": f"生成中... ({int(event['progress'] * 100)}%)",
+                                "markdown_preview": event["content"],  # 实时预览
+                            },
+                        })
+                    elif event["type"] == "complete":
+                        # 完成事件
+                        stage_one_data = event["content"]
+                        yield self._format_sse({
+                            "event": "stage_complete",
+                            "data": {
+                                "stage": 1,
+                                "markdown": stage_one_data,
+                                "generation_time": event["generation_time"],
+                            },
+                        })
+                        logger.info(
+                            f"Stage 1 Markdown complete: {len(stage_one_data)} characters"
+                        )
+                    elif event["type"] == "error":
+                        # 错误事件
+                        yield self._format_sse({
+                            "event": "error",
+                            "data": {
+                                "stage": 1,
+                                "message": f"阶段1生成失败: {event.get('error')}",
+                            },
+                        })
+                        return
 
-                if not result1["success"]:
-                    yield self._format_sse({
-                        "event": "error",
-                        "data": {
-                            "stage": 1,
-                            "message": f"阶段1生成失败: {result1.get('error')}",
-                        },
-                    })
-                    return
-
-                # 获取Markdown内容（而非JSON数据）
-                stage_one_data = result1["markdown"]
-
-                yield self._format_sse({
-                    "event": "stage_complete",
-                    "data": {
-                        "stage": 1,
-                        "markdown": stage_one_data,
-                        "generation_time": result1["generation_time"],
-                    },
-                })
-
-                logger.info(
-                    f"Stage 1 Markdown complete: {len(stage_one_data)} characters"
-                )
-
-            # ===== Stage 2: 确定可接受的证据 =====
+            # ===== Stage 2: 确定可接受的证据 (流式) =====
             if 2 in stages_to_generate and stage_one_data and not stage_two_data:
                 yield self._format_sse({
                     "event": "progress",
@@ -135,37 +148,44 @@ class WorkflowServiceV3:
                     },
                 })
 
-                result2 = await self.agent2.generate(
+                # 使用流式生成
+                async for event in self.agent2.generate_stream(
                     stage_one_data=stage_one_data, course_info=course_info
-                )
+                ):
+                    if event["type"] == "progress":
+                        yield self._format_sse({
+                            "event": "progress",
+                            "data": {
+                                "stage": 2,
+                                "progress": event["progress"],
+                                "message": f"生成中... ({int(event['progress'] * 100)}%)",
+                                "markdown_preview": event["content"],
+                            },
+                        })
+                    elif event["type"] == "complete":
+                        stage_two_data = event["content"]
+                        yield self._format_sse({
+                            "event": "stage_complete",
+                            "data": {
+                                "stage": 2,
+                                "markdown": stage_two_data,
+                                "generation_time": event["generation_time"],
+                            },
+                        })
+                        logger.info(
+                            f"Stage 2 complete: Markdown generated ({len(stage_two_data)} chars)"
+                        )
+                    elif event["type"] == "error":
+                        yield self._format_sse({
+                            "event": "error",
+                            "data": {
+                                "stage": 2,
+                                "message": f"阶段2生成失败: {event.get('error')}",
+                            },
+                        })
+                        return
 
-                if not result2["success"]:
-                    yield self._format_sse({
-                        "event": "error",
-                        "data": {
-                            "stage": 2,
-                            "message": f"阶段2生成失败: {result2.get('error')}",
-                        },
-                    })
-                    return
-
-                # 获取Markdown数据
-                stage_two_data = result2["markdown"]
-
-                yield self._format_sse({
-                    "event": "stage_complete",
-                    "data": {
-                        "stage": 2,
-                        "markdown": stage_two_data,
-                        "generation_time": result2["generation_time"],
-                    },
-                })
-
-                logger.info(
-                    f"Stage 2 complete: Markdown generated ({len(stage_two_data)} chars)"
-                )
-
-            # ===== Stage 3: 规划学习体验 =====
+            # ===== Stage 3: 规划学习体验 (流式) =====
             # 注意：Stage 3 现在接收 Stage 2 的 Markdown 数据
             if 3 in stages_to_generate and stage_one_data and stage_two_data:
                 yield self._format_sse({
@@ -177,37 +197,44 @@ class WorkflowServiceV3:
                     },
                 })
 
-                result3 = await self.agent3.generate(
+                # 使用流式生成
+                async for event in self.agent3.generate_stream(
                     stage_one_data=stage_one_data,
-                    stage_two_data=stage_two_data,  # 传递 Markdown 数据
+                    stage_two_data=stage_two_data,
                     course_info=course_info,
-                )
-
-                if not result3["success"]:
-                    yield self._format_sse({
-                        "event": "error",
-                        "data": {
-                            "stage": 3,
-                            "message": f"阶段3生成失败: {result3.get('error')}",
-                        },
-                    })
-                    return
-
-                # 获取Markdown数据
-                stage_three_data = result3["markdown"]
-
-                yield self._format_sse({
-                    "event": "stage_complete",
-                    "data": {
-                        "stage": 3,
-                        "markdown": stage_three_data,
-                        "generation_time": result3["generation_time"],
-                    },
-                })
-
-                logger.info(
-                    f"Stage 3 complete: Markdown generated ({len(stage_three_data)} chars)"
-                )
+                ):
+                    if event["type"] == "progress":
+                        yield self._format_sse({
+                            "event": "progress",
+                            "data": {
+                                "stage": 3,
+                                "progress": event["progress"],
+                                "message": f"生成中... ({int(event['progress'] * 100)}%)",
+                                "markdown_preview": event["content"],
+                            },
+                        })
+                    elif event["type"] == "complete":
+                        stage_three_data = event["content"]
+                        yield self._format_sse({
+                            "event": "stage_complete",
+                            "data": {
+                                "stage": 3,
+                                "markdown": stage_three_data,
+                                "generation_time": event["generation_time"],
+                            },
+                        })
+                        logger.info(
+                            f"Stage 3 complete: Markdown generated ({len(stage_three_data)} chars)"
+                        )
+                    elif event["type"] == "error":
+                        yield self._format_sse({
+                            "event": "error",
+                            "data": {
+                                "stage": 3,
+                                "message": f"阶段3生成失败: {event.get('error')}",
+                            },
+                        })
+                        return
 
             # ===== 完成 =====
             total_time = time.time() - start_time
@@ -254,7 +281,8 @@ class WorkflowServiceV3:
         title: str,
         subject: str = "",
         grade_level: str = "",
-        duration_weeks: int = 12,
+        total_class_hours: int = None,
+        schedule_description: str = "",
         description: str = "",
     ) -> Dict[str, Any]:
         """
@@ -277,13 +305,14 @@ class WorkflowServiceV3:
                 "title": title,
                 "subject": subject,
                 "grade_level": grade_level,
-                "duration_weeks": duration_weeks,
+                "total_class_hours": total_class_hours,
+                "schedule_description": schedule_description,
                 "description": description,
             }
 
             # Stage 1
             result1 = await self.agent1.generate(
-                title, subject, grade_level, duration_weeks, description
+                title, subject, grade_level, total_class_hours, schedule_description, description
             )
             if not result1["success"]:
                 return {"success": False, "error": f"Stage 1 failed: {result1['error']}"}

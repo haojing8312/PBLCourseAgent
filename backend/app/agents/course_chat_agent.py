@@ -94,7 +94,8 @@ class CourseChatAgent:
 - 课程名称：{course_info.get('title', 'N/A')}
 - 学科领域：{course_info.get('subject', 'N/A')}
 - 年级水平：{course_info.get('grade_level', 'N/A')}
-- 课程时长：{course_info.get('duration_weeks', 'N/A')}周
+- 总课时：{course_info.get('total_class_hours', 'N/A')}课时
+- 上课周期：{course_info.get('schedule_description', 'N/A')}
 - 课程简介：{course_info.get('description', 'N/A')}
 
 """

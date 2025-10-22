@@ -17,7 +17,11 @@ class CourseProject(Base):
     title = Column(String(255), nullable=False, index=True)
     subject = Column(String(100), nullable=True)
     grade_level = Column(String(100), nullable=True)
-    duration_weeks = Column(Integer, nullable=True)
+
+    # 课程时长 - 灵活方案
+    total_class_hours = Column(Integer, nullable=True, comment="总课时数（按45分钟标准课时）")
+    schedule_description = Column(Text, nullable=True, comment="上课周期描述，例如：共4周，每周1次，一次半天3个小时")
+
     description = Column(Text, nullable=True)
 
     # UbD Stage One: 确定预期学习结果 (G/U/Q/K/S) - Markdown格式
