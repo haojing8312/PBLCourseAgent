@@ -42,6 +42,7 @@ class WorkflowServiceV3:
         stages_to_generate: list = None,
         stage_one_data: str = None,
         stage_two_data: str = None,
+        edit_instructions: str = None,  # 🎯 新增：AI对话中的编辑指令
     ) -> AsyncGenerator[str, None]:
         """
         流式生成完整工作流
@@ -92,6 +93,12 @@ class WorkflowServiceV3:
                     },
                 })
 
+                # 🎯 如果有编辑指令，注入到description中
+                effective_description = description
+                if edit_instructions:
+                    effective_description = f"{description}\n\n【重要修改指令】用户在对话中提出了以下修改要求，请在生成时优先考虑：\n{edit_instructions}\n\n请基于现有内容进行针对性的修改，而不是完全重新生成。"
+                    logger.info(f"Stage 1: Injecting edit_instructions: {edit_instructions}")
+
                 # 使用流式生成
                 async for event in self.agent1.generate_stream(
                     title=title,
@@ -99,7 +106,7 @@ class WorkflowServiceV3:
                     grade_level=grade_level,
                     total_class_hours=total_class_hours,
                     schedule_description=schedule_description,
-                    description=description,
+                    description=effective_description,  # 🎯 使用包含编辑指令的描述
                 ):
                     if event["type"] == "progress":
                         # 转发进度事件（包含当前markdown内容）
@@ -148,9 +155,15 @@ class WorkflowServiceV3:
                     },
                 })
 
+                # 🎯 如果有编辑指令，注入到course_info中
+                effective_course_info = course_info.copy()
+                if edit_instructions:
+                    effective_course_info["description"] = f"{course_info.get('description', '')}\n\n【重要修改指令】用户在对话中提出了以下修改要求，请在生成时优先考虑：\n{edit_instructions}\n\n请基于现有内容进行针对性的修改，而不是完全重新生成。"
+                    logger.info(f"Stage 2: Injecting edit_instructions: {edit_instructions}")
+
                 # 使用流式生成
                 async for event in self.agent2.generate_stream(
-                    stage_one_data=stage_one_data, course_info=course_info
+                    stage_one_data=stage_one_data, course_info=effective_course_info
                 ):
                     if event["type"] == "progress":
                         yield self._format_sse({
@@ -197,11 +210,17 @@ class WorkflowServiceV3:
                     },
                 })
 
+                # 🎯 如果有编辑指令，注入到course_info中（复用Stage 2的逻辑）
+                if edit_instructions and not effective_course_info:
+                    effective_course_info = course_info.copy()
+                    effective_course_info["description"] = f"{course_info.get('description', '')}\n\n【重要修改指令】用户在对话中提出了以下修改要求，请在生成时优先考虑：\n{edit_instructions}\n\n请基于现有内容进行针对性的修改，而不是完全重新生成。"
+                    logger.info(f"Stage 3: Injecting edit_instructions: {edit_instructions}")
+
                 # 使用流式生成
                 async for event in self.agent3.generate_stream(
                     stage_one_data=stage_one_data,
                     stage_two_data=stage_two_data,
-                    course_info=course_info,
+                    course_info=effective_course_info if edit_instructions else course_info,
                 ):
                     if event["type"] == "progress":
                         yield self._format_sse({

@@ -44,6 +44,11 @@ class WorkflowRequest(BaseModel):
         None, description="Stage Two Markdown数据（修改后重新生成时提供）"
     )
 
+    # 🎯 新增：AI对话中的编辑指令
+    edit_instructions: Optional[str] = Field(
+        None, description="AI对话中提出的修改指令，用于引导Agent进行局部修改而非完全重新生成"
+    )
+
 
 # ========== SSE Stream Generator ==========
 
@@ -78,6 +83,7 @@ async def stream_workflow_events(request: WorkflowRequest):
             stages_to_generate=request.stages_to_generate,
             stage_one_data=request.stage_one_data,
             stage_two_data=request.stage_two_data,
+            edit_instructions=request.edit_instructions,  # 🎯 传递编辑指令
         ):
             yield sse_event
 

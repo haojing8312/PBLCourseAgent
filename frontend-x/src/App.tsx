@@ -354,9 +354,14 @@ function App() {
     console.log(`[App] Regenerating Stage ${stage} based on chat request`);
     console.log(`[App] Instructions: ${instructions}`);
 
+    if (!courseInfo || !courseInfo.id) {
+      message.error('课程信息不完整，无法执行修改');
+      return;
+    }
+
     // 1. 显示提示信息
     message.info({
-      content: `AI正在根据您的要求重新生成 Stage ${stage}...`,
+      content: `AI正在根据您的要求修改 Stage ${stage}...`,
       duration: 3,
     });
 
@@ -366,10 +371,28 @@ function App() {
       console.log(`[App] Switched to Stage ${stage}`);
     }
 
-    // 3. 调用现有的生成方法触发重新生成
-    // 注意：这里会使用现有的Agent重新生成整个Stage
-    // 未来可以扩展为支持局部修改（根据instructions）
-    await handleGenerateStage(stage);
+    // 3. 🎯 构建包含edit_instructions的WorkflowRequest
+    const workflowRequest: WorkflowRequest = {
+      title: courseInfo.title,
+      subject: courseInfo.subject,
+      grade_level: courseInfo.gradeLevel,
+      total_class_hours: courseInfo.totalClassHours,
+      schedule_description: courseInfo.scheduleDescription,
+      description: courseInfo.description,
+      stages_to_generate: [stage],
+
+      // 🎯 关键：传递AI的修改指令
+      edit_instructions: instructions,
+    };
+
+    try {
+      console.log(`[App] Starting workflow with edit_instructions:`, instructions);
+      await startWorkflow(workflowRequest);
+      message.success(`Stage ${stage} 修改完成！`);
+    } catch (error) {
+      message.error(`Stage ${stage} 修改失败，请重试`);
+      console.error('[App] Regenerate error:', error);
+    }
   };
 
   /**

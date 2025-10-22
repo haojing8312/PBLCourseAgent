@@ -162,6 +162,9 @@ export interface WorkflowRequest {
   stages_to_generate?: number[]; // [1, 2, 3]
   stage_one_data?: string; // Stage One Markdown（修改后重新生成时提供）
   stage_two_data?: string; // Stage Two Markdown（修改后重新生成时提供）
+
+  // 🎯 新增：AI对话中的编辑指令
+  edit_instructions?: string; // AI对话中提出的修改指令
 }
 
 export interface SSEEvent {
