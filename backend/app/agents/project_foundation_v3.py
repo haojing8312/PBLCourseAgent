@@ -4,7 +4,7 @@ UbD Stage One: 确定预期学习结果 (G/U/Q/K/S框架)
 Markdown版本 - 直接生成Markdown文档
 """
 import time
-from typing import Dict, Any
+from typing import Dict, Any, AsyncGenerator
 from pathlib import Path
 import logging
 
@@ -83,7 +83,8 @@ class ProjectFoundationAgentV3:
         title: str,
         subject: str = "",
         grade_level: str = "",
-        duration_weeks: int = 12,
+        total_class_hours: int = None,
+        schedule_description: str = "",
         description: str = "",
     ) -> str:
         """
@@ -93,14 +94,22 @@ class ProjectFoundationAgentV3:
             title: 课程名称
             subject: 学科领域
             grade_level: 年级水平
-            duration_weeks: 课程时长（周）
+            total_class_hours: 总课时数（按45分钟标准课时）
+            schedule_description: 上课周期描述
             description: 课程简介
         """
+        # 构建课程时长信息
+        duration_info = ""
+        if total_class_hours:
+            duration_info = f"{total_class_hours}课时"
+        if schedule_description:
+            duration_info += f"（{schedule_description}）" if duration_info else schedule_description
+
         return f"""# USER INPUT
 课程名称: {title}
 学科领域: {subject or "未指定"}
 年级水平: {grade_level or "未指定"}
-课程时长: {duration_weeks}周
+课程时长: {duration_info or "未指定"}
 课程简介: {description or "无"}
 
 请基于以上课程信息，生成符合UbD框架的"阶段一：确定预期学习结果"的完整Markdown文档。
@@ -118,7 +127,8 @@ class ProjectFoundationAgentV3:
         title: str,
         subject: str = "",
         grade_level: str = "",
-        duration_weeks: int = 12,
+        total_class_hours: int = None,
+        schedule_description: str = "",
         description: str = "",
     ) -> Dict[str, Any]:
         """
@@ -128,7 +138,8 @@ class ProjectFoundationAgentV3:
             title: 课程名称
             subject: 学科领域
             grade_level: 年级水平
-            duration_weeks: 课程时长（周）
+            total_class_hours: 总课时数（按45分钟标准课时）
+            schedule_description: 上课周期描述
             description: 课程简介
 
         Returns:
@@ -147,7 +158,7 @@ class ProjectFoundationAgentV3:
 
             system_prompt = self._build_system_prompt()
             user_prompt = self._build_user_prompt(
-                title, subject, grade_level, duration_weeks, description
+                title, subject, grade_level, total_class_hours, schedule_description, description
             )
 
             # 调用AI API
@@ -208,3 +219,121 @@ class ProjectFoundationAgentV3:
                 "generation_time": generation_time,
                 "model": settings.agent1_model or settings.openai_model,
             }
+
+    async def generate_stream(
+        self,
+        title: str,
+        subject: str = "",
+        grade_level: str = "",
+        total_class_hours: int = None,
+        schedule_description: str = "",
+        description: str = "",
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        流式生成Stage One的Markdown文档 (G/U/Q/K/S)
+
+        Args:
+            title: 课程名称
+            subject: 学科领域
+            grade_level: 年级水平
+            total_class_hours: 总课时数（按45分钟标准课时）
+            schedule_description: 上课周期描述
+            description: 课程简介
+
+        Yields:
+            Dict[str, Any]: 流式事件
+            {
+                "type": "progress",  # "progress" | "complete" | "error"
+                "content": str,      # 当前累积的markdown内容
+                "chunk": str,        # 本次新增的文本块（仅progress事件）
+                "progress": float,   # 0.0-1.0 估算进度
+            }
+        """
+        start_time = time.time()
+        accumulated_content = ""
+        model = settings.agent1_model or settings.openai_model
+
+        try:
+            logger.info(f"Streaming Stage One Markdown for: {title}")
+
+            system_prompt = self._build_system_prompt()
+            user_prompt = self._build_user_prompt(
+                title, subject, grade_level, total_class_hours, schedule_description, description
+            )
+
+            # 调用流式AI API
+            chunk_count = 0
+            start_stream = time.time()
+            logger.info("[STREAM] Agent 1 starting OpenAI streaming...")
+
+            async for chunk in openai_client.generate_response_stream(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                model=model,
+                max_tokens=3000,
+                temperature=0.7,
+                timeout=self.timeout,
+            ):
+                accumulated_content += chunk
+                chunk_count += 1
+                elapsed = time.time() - start_stream
+
+                # 每10个chunk记录一次日志
+                if chunk_count % 10 == 0:
+                    logger.info(f"[STREAM] Agent 1 chunk #{chunk_count} @ {elapsed:.2f}s, chars: {len(accumulated_content)}")
+
+                # 🔑 关键：每个chunk都发送进度事件并yield（实时）
+                estimated_progress = min(len(accumulated_content) / 2000, 0.99)
+
+                logger.info(f"[STREAM] Agent 1 yielding progress event #{chunk_count}")
+                yield {
+                    "type": "progress",
+                    "content": accumulated_content,
+                    "chunk": chunk,
+                    "progress": estimated_progress,
+                }
+                logger.info(f"[STREAM] Agent 1 yielded event #{chunk_count}")
+
+            logger.info(f"[STREAM] Agent 1 finished! Total chunks: {chunk_count}, elapsed: {time.time() - start_stream:.2f}s")
+
+            # 清理markdown格式（移除可能的代码块包裹）
+            final_content = accumulated_content.strip()
+            if final_content.startswith("```markdown"):
+                final_content = final_content[11:].strip()
+                if final_content.endswith("```"):
+                    final_content = final_content[:-3].strip()
+            elif final_content.startswith("```"):
+                final_content = final_content[3:].strip()
+                if final_content.endswith("```"):
+                    final_content = final_content[:-3].strip()
+
+            generation_time = time.time() - start_time
+
+            logger.info(
+                f"Stage One Markdown streaming complete in {generation_time:.2f}s"
+            )
+            logger.info(
+                f"Generated markdown length: {len(final_content)} characters"
+            )
+
+            # 发送完成事件
+            yield {
+                "type": "complete",
+                "content": final_content,
+                "progress": 1.0,
+                "generation_time": generation_time,
+                "model": model,
+            }
+
+        except Exception as e:
+            logger.error(f"Agent streaming failed: {e}", exc_info=True)
+            generation_time = time.time() - start_time
+
+            yield {
+                "type": "error",
+                "error": str(e),
+                "content": accumulated_content,  # 返回已生成的部分
+                "generation_time": generation_time,
+                "model": model,
+            }
+

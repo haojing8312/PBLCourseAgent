@@ -4,7 +4,7 @@ UbD Stage Three: 规划学习体验 (PBL四阶段 + WHERETO原则)
 """
 import json
 import time
-from typing import Dict, Any
+from typing import Dict, Any, AsyncGenerator
 from pathlib import Path
 import logging
 
@@ -204,4 +204,94 @@ class LearningBlueprintAgentV3:
                 "error": str(e),
                 "generation_time": generation_time,
                 "model": settings.agent3_model or settings.openai_model,
+            }
+
+    async def generate_stream(
+        self,
+        stage_one_data: str,
+        stage_two_data: str,
+        course_info: Dict[str, Any],
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        流式生成Stage Three的Markdown文档
+
+        Args:
+            stage_one_data: Stage One的Markdown数据
+            stage_two_data: Stage Two的Markdown数据
+            course_info: 课程基本信息
+
+        Yields:
+            Dict[str, Any]: 流式事件 {"type", "content", "chunk", "progress"}
+        """
+        start_time = time.time()
+        accumulated_content = ""
+        model = settings.agent3_model or settings.openai_model
+
+        try:
+            logger.info(f"Streaming Stage Three Markdown for: {course_info.get('title', 'Unknown')}")
+
+            system_prompt = self._build_system_prompt()
+            user_prompt = self._build_user_prompt(
+                stage_one_data, stage_two_data, course_info
+            )
+
+            chunk_count = 0
+            logger.info("[STREAM] Agent 3 starting OpenAI streaming...")
+
+            async for chunk in openai_client.generate_response_stream(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                model=model,
+                max_tokens=6000,
+                temperature=0.7,
+                timeout=self.timeout,
+            ):
+                accumulated_content += chunk
+                chunk_count += 1
+
+                # 每10个chunk记录日志
+                if chunk_count % 10 == 0:
+                    logger.info(f"[STREAM] Agent 3 chunk #{chunk_count}, chars: {len(accumulated_content)}")
+
+                # 每个chunk都发送（实时流式）
+                estimated_progress = min(len(accumulated_content) / 5000, 0.99)
+                yield {
+                    "type": "progress",
+                    "content": accumulated_content,
+                    "chunk": chunk,
+                    "progress": estimated_progress,
+                }
+
+            logger.info(f"[STREAM] Agent 3 finished! Total chunks: {chunk_count}")
+
+            final_content = accumulated_content.strip()
+            if final_content.startswith("```markdown"):
+                final_content = final_content[11:].strip()
+                if final_content.endswith("```"):
+                    final_content = final_content[:-3].strip()
+            elif final_content.startswith("```"):
+                final_content = final_content[3:].strip()
+                if final_content.endswith("```"):
+                    final_content = final_content[:-3].strip()
+
+            generation_time = time.time() - start_time
+            logger.info(f"Stage Three Markdown streaming complete in {generation_time:.2f}s")
+
+            yield {
+                "type": "complete",
+                "content": final_content,
+                "progress": 1.0,
+                "generation_time": generation_time,
+                "model": model,
+            }
+
+        except Exception as e:
+            logger.error(f"Agent streaming failed: {e}", exc_info=True)
+            generation_time = time.time() - start_time
+            yield {
+                "type": "error",
+                "error": str(e),
+                "content": accumulated_content,
+                "generation_time": generation_time,
+                "model": model,
             }

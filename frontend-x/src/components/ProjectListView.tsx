@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Space, Tag, Popconfirm, message } from 'antd';
+import { Card, Table, Button, Input, Space, Tag, Popconfirm, message, Typography, Tooltip } from 'antd';
 import {
   PlusOutlined,
   SearchOutlined,
@@ -16,6 +16,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { CourseProject } from '../types/course';
 
 const { Search } = Input;
+const { Text } = Typography;
 
 export interface ProjectListViewProps {
   /** 打开项目回调 */
@@ -118,9 +119,24 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
       key: 'title',
       width: 300,
       render: (text, record) => (
-        <Button type="link" onClick={() => onOpenProject(record)}>
-          {text}
-        </Button>
+        <Space direction="vertical" size={0}>
+          <Button type="link" onClick={() => onOpenProject(record)}>
+            {text}
+          </Button>
+          {record.description && (
+            record.description.length > 50 ? (
+              <Tooltip title={record.description} placement="topLeft">
+                <Text type="secondary" style={{ fontSize: '12px', cursor: 'help' }}>
+                  {`${record.description.substring(0, 50)}...`}
+                </Text>
+              </Tooltip>
+            ) : (
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {record.description}
+              </Text>
+            )
+          )}
+        </Space>
       ),
     },
     {
@@ -139,10 +155,26 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
     },
     {
       title: '时长',
-      dataIndex: 'duration_weeks',
-      key: 'duration_weeks',
-      width: 100,
-      render: (weeks) => (weeks ? `${weeks}周` : '-'),
+      key: 'duration',
+      width: 250,
+      render: (_, record) => {
+        if (!record.total_class_hours && !record.schedule_description) {
+          return '-';
+        }
+
+        return (
+          <Space direction="vertical" size={0}>
+            {record.total_class_hours && (
+              <Text strong>{record.total_class_hours}课时</Text>
+            )}
+            {record.schedule_description && (
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                {record.schedule_description}
+              </Text>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: '进度',

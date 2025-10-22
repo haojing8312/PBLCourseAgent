@@ -203,6 +203,232 @@ claude mcp add spec-workflow-mcp -s user -- npx -y spec-workflow-mcp@latest
 - **集成测试**: 使用黄金标准案例验证输出质量
 - **测试覆盖率**: 目标 >80%
 
+### 核心业务流程测试规范
+
+**核心理念**："任何可能破坏用户核心流程的修改，必须先通过核心业务流程测试。"
+
+这是从422错误事件中学到的教训：数据结构调整时，仅更新了CRUD API但遗漏了Workflow API，导致用户在使用核心功能时遇到错误。核心业务流程测试是防止此类问题的最后一道防线。
+
+#### 什么是"重大修改"？
+
+以下任何一种修改都属于**重大修改**，必须通过核心业务流程测试：
+
+1. **数据结构调整**
+   - 修改数据库Schema（添加/删除/修改字段）
+   - 修改API请求/响应模型（Pydantic Models）
+   - 修改前端类型定义（TypeScript interfaces）
+
+2. **新模块增加**
+   - 新增Agent或Service
+   - 新增API端点
+   - 新增核心业务流程分支
+
+3. **Prompt修改**
+   - 修改Agent的System Prompt
+   - 修改Prompt模板结构
+   - 调整Prompt参数（temperature、max_tokens等）
+
+4. **依赖升级**
+   - 升级FastAPI、Pydantic等核心框架
+   - 升级OpenAI SDK或切换AI模型
+   - 升级React、TypeScript等前端核心库
+
+5. **API契约变更**
+   - 修改API端点路径或方法
+   - 修改必需字段或可选字段
+   - 修改返回数据格式
+
+#### 核心测试文件
+
+**主测试文件**: `backend/app/tests/test_core_workflow.py`
+
+这是最重要的测试文件，覆盖完整的用户业务流程：
+1. 创建课程（使用最新数据结构）
+2. 生成Stage 1（项目基础）
+3. 生成Stage 2（评估框架）
+4. 生成Stage 3（学习蓝图）
+5. 导出课程文档
+
+**为什么是单个文件？**
+- 确保测试流程的连贯性和完整性
+- 更容易发现跨模块的集成问题
+- 测试执行快速（开发阶段无需复杂的测试分层）
+
+#### 何时必须运行核心测试
+
+**强制要求**：以下情况必须运行并通过核心业务流程测试：
+
+✅ **数据结构修改完成后**
+```bash
+# 示例：修改了course_project.py添加新字段
+cd backend
+uv run pytest app/tests/test_core_workflow.py -v
+```
+
+✅ **新API端点添加后**
+```bash
+# 示例：添加了新的workflow端点或修改了现有端点
+cd backend
+uv run pytest app/tests/test_core_workflow.py -v
+```
+
+✅ **Prompt重大修改后**
+```bash
+# 示例：修改了project_foundation_v3_markdown.md
+cd backend
+uv run pytest app/tests/test_core_workflow.py -v
+```
+
+✅ **每日开发结束前**（如果当天有重大修改）
+```bash
+cd backend
+uv run pytest app/tests/test_core_workflow.py -v
+```
+
+✅ **提交PR前**
+```bash
+cd backend
+uv run pytest app/tests/test_core_workflow.py -v
+```
+
+#### 数据结构修改检查清单
+
+当修改数据结构时，必须检查以下所有位置以确保一致性：
+
+**后端（Backend）:**
+- [ ] `app/models/course_project.py` - 数据库模型
+- [ ] `app/api/v1/course.py` - CRUD API的Pydantic模型
+- [ ] `app/api/v1/generate.py` - Workflow API的Pydantic模型
+- [ ] `app/services/workflow_service_v3.py` - Service层方法签名
+- [ ] `app/agents/project_foundation_v3.py` - Agent方法签名
+- [ ] `app/agents/assessment_framework_v3.py` - Agent方法签名
+- [ ] `app/agents/learning_blueprint_v3.py` - Agent方法签名
+- [ ] 数据库迁移（如需要）- ALTER TABLE或迁移脚本
+
+**前端（Frontend）:**
+- [ ] `src/types/course.ts` - TypeScript接口定义
+- [ ] `src/stores/courseStore.ts` - Zustand状态管理
+- [ ] `src/App.tsx` - 创建课程表单
+- [ ] `src/components/ProjectListView.tsx` - 列表显示
+- [ ] 其他使用课程数据的组件
+
+**测试（Tests）:**
+- [ ] `app/tests/test_core_workflow.py` - 核心业务流程测试
+- [ ] 相关单元测试文件
+
+**文档（Documentation）:**
+- [ ] API文档（如有）
+- [ ] 类型定义文档（如有）
+
+#### 测试通过标准
+
+所有核心业务流程测试必须：
+
+1. **全部通过** - 0 failed, 0 errors
+   ```
+   ✓ test_01_create_course_with_new_duration_fields PASSED
+   ✓ test_02_workflow_api_accepts_new_fields PASSED
+   ✓ test_03_generate_stage_one PASSED
+   ✓ test_04_export_course PASSED
+   ✓ test_05_list_courses_shows_new_fields PASSED
+   ```
+
+2. **响应时间合理** - Stage生成在合理时间内完成（通常<60秒）
+
+3. **数据正确性** - 验证返回数据包含所有必需字段
+
+4. **无422错误** - 特别验证不会因为字段不匹配导致422错误
+
+#### 快速验证（Smoke Test）
+
+对于小修改，可以先运行快速冒烟测试：
+
+```bash
+cd backend
+uv run pytest app/tests/test_core_workflow.py::test_smoke_create_and_workflow -v
+```
+
+冒烟测试通过后，再运行完整测试：
+
+```bash
+cd backend
+uv run pytest app/tests/test_core_workflow.py -v
+```
+
+#### 测试失败处理流程
+
+如果核心业务流程测试失败：
+
+1. **立即停止部署** - 不要将代码推送到生产环境
+
+2. **分析失败原因**
+   ```bash
+   # 查看详细错误信息
+   uv run pytest app/tests/test_core_workflow.py -v --tb=short
+   ```
+
+3. **检查数据一致性**
+   - 使用上述数据结构修改检查清单
+   - 确保前后端字段名称完全一致（包括大小写、下划线）
+
+4. **修复后重新测试**
+   ```bash
+   uv run pytest app/tests/test_core_workflow.py -v
+   ```
+
+5. **验证修复** - 所有测试通过后，手动在浏览器中验证一次完整流程
+
+#### 真实案例：422错误事件
+
+**背景**：将课程时长字段从`duration_weeks`改为`total_class_hours`和`schedule_description`
+
+**错误**：
+- ✅ 已更新：`app/api/v1/course.py` (CRUD API)
+- ✅ 已更新：`app/models/course_project.py` (数据库模型)
+- ✅ 已更新：前端所有文件
+- ❌ **遗漏**：`app/api/v1/generate.py` (Workflow API)
+
+**结果**：用户创建课程成功，但生成Stage 1时报422错误
+
+**根本原因**：缺少核心业务流程测试来验证完整的用户流程
+
+**修复**：
+1. 更新了`app/api/v1/generate.py`
+2. 创建了`test_core_workflow.py`
+3. 添加了`test_02_workflow_api_accepts_new_fields`测试，专门防止此类错误
+
+**教训**：
+```python
+# test_core_workflow.py中的关键测试
+def test_02_workflow_api_accepts_new_fields(self):
+    """
+    Critical test - prevents 422 errors
+    这个测试如果在修改时就存在，就能立即发现问题
+    """
+    response = client.post("/api/v1/workflow/stream", json={
+        "total_class_hours": 40,
+        "schedule_description": "共5天，每天半天",
+        "stages_to_generate": [1],
+    })
+    # 最关键的断言：不应该返回422
+    assert response.status_code != 422
+```
+
+#### 禁止事项
+
+- ❌ **绝不跳过测试** - "只是小改动"是最危险的想法
+- ❌ **绝不只测试部分流程** - 必须测试完整的端到端流程
+- ❌ **绝不在测试失败时部署** - 即使"看起来能工作"
+- ❌ **绝不修改测试来让它通过** - 应该修复代码，而不是修改测试
+
+#### 推荐做法
+
+- ✅ **修改前先看测试** - 了解需要验证什么
+- ✅ **修改后立即测试** - 不要等到"全部完成"
+- ✅ **使用检查清单** - 确保没有遗漏任何文件
+- ✅ **记录测试结果** - 在PR中注明测试通过
+- ✅ **扩展测试覆盖** - 如果发现新的边界情况，添加新测试
+
 ### 项目结构
 ```
 eduagents/

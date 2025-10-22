@@ -142,6 +142,21 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
           if (data.stage) {
             setStepStatus(data.stage, 'in_progress');
           }
+
+          // 处理实时markdown预览
+          if (data.markdown_preview && data.stage) {
+            switch (data.stage) {
+              case 1:
+                setStageOneData(data.markdown_preview);
+                break;
+              case 2:
+                setStageTwoData(data.markdown_preview);
+                break;
+              case 3:
+                setStageThreeData(data.markdown_preview);
+                break;
+            }
+          }
         },
 
         onStageComplete: async (data) => {
