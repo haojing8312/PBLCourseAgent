@@ -9,8 +9,8 @@
  */
 
 import React, { useState, lazy, Suspense } from 'react';
-import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin, Typography } from 'antd';
-import { PlusOutlined, SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin, Typography, Popover, Descriptions } from 'antd';
+import { PlusOutlined, SaveOutlined, ArrowLeftOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
@@ -26,7 +26,7 @@ import './App.css';
 const { Content } = Layout;
 const { Text } = Typography;
 
-type ViewMode = 'list' | 'course';
+type ViewMode = 'home' | 'list' | 'course';
 
 // 懒加载组件 - 减少初始包大小，提升加载性能
 const MarkdownEditor = lazy(() => import('./components/MarkdownEditor').then(m => ({ default: m.MarkdownEditor })));
@@ -34,6 +34,7 @@ const HelpDialog = lazy(() => import('./components/HelpDialog').then(m => ({ def
 const OnboardingOverlay = lazy(() => import('./components/OnboardingOverlay').then(m => ({ default: m.OnboardingOverlay })));
 const ProjectListView = lazy(() => import('./components/ProjectListView').then(m => ({ default: m.ProjectListView })));
 const ChangeDetectionDialog = lazy(() => import('./components/ChangeDetectionDialog').then(m => ({ default: m.ChangeDetectionDialog })));
+const HomePage = lazy(() => import('./components/HomePage').then(m => ({ default: m.HomePage })));
 
 /**
  * 加载占位组件
@@ -45,8 +46,8 @@ const LoadingFallback: React.FC = () => (
 );
 
 function App() {
-  // 视图模式 ('list' | 'course')
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  // 视图模式 ('home' | 'list' | 'course')
+  const [viewMode, setViewMode] = useState<ViewMode>('home');
 
   // 课程Store状态
   const {
@@ -105,7 +106,8 @@ function App() {
         title: project.title,
         subject: project.subject,
         gradeLevel: project.grade_level,
-        durationWeeks: project.duration_weeks,
+        totalClassHours: project.total_class_hours,
+        scheduleDescription: project.schedule_description,
         description: project.description,
       });
 
@@ -156,6 +158,13 @@ function App() {
   };
 
   /**
+   * 从首页进入项目列表
+   */
+  const handleStartFromHome = () => {
+    setViewMode('list');
+  };
+
+  /**
    * 创建新课程并启动工作流
    */
   const handleCreateCourse = async (values: any) => {
@@ -169,7 +178,8 @@ function App() {
         title: values.title,
         subject: values.subject,
         grade_level: values.gradeLevel,
-        duration_weeks: values.durationWeeks,
+        total_class_hours: values.totalClassHours,
+        schedule_description: values.scheduleDescription,
         description: values.description,
       });
 
@@ -179,7 +189,8 @@ function App() {
         title: createdCourse.title,
         subject: createdCourse.subject,
         gradeLevel: createdCourse.grade_level,
-        durationWeeks: createdCourse.duration_weeks,
+        totalClassHours: createdCourse.total_class_hours,
+        scheduleDescription: createdCourse.schedule_description,
         description: createdCourse.description,
       });
 
@@ -188,7 +199,8 @@ function App() {
         title: values.title,
         subject: values.subject,
         grade_level: values.gradeLevel,
-        duration_weeks: values.durationWeeks,
+        total_class_hours: values.totalClassHours,
+        schedule_description: values.scheduleDescription,
         description: values.description,
         stages_to_generate: [1], // 只生成Stage 1，符合UbD逆向设计的理念
       };
@@ -375,6 +387,13 @@ function App() {
   };
 
   /**
+   * 返回首页
+   */
+  const handleBackToHome = () => {
+    setViewMode('home');
+  };
+
+  /**
    * 渲染Header右侧操作区
    */
   const renderHeaderActions = () => {
@@ -382,7 +401,7 @@ function App() {
       return (
         <>
           <Button icon={<ArrowLeftOutlined />} onClick={handleBackToList}>
-            返回
+            返回列表
           </Button>
           <DownloadButton
             courseId={courseInfo?.id}
@@ -393,7 +412,15 @@ function App() {
       );
     }
 
-    // 列表视图时不显示按钮（在列表内已有"新建课程"按钮）
+    if (viewMode === 'list') {
+      return (
+        <Button icon={<ArrowLeftOutlined />} onClick={handleBackToHome}>
+          返回首页
+        </Button>
+      );
+    }
+
+    // 首页视图时不显示按钮
     return null;
   };
 
@@ -402,33 +429,7 @@ function App() {
    */
   const renderCourseView = () => (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      {/* 加载和错误提示 - 使用绝对定位，不占据布局空间 */}
-      {isGenerating && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 100,
-          textAlign: 'center',
-          padding: SPACING.MD,
-          background: COLORS.BG_CONTAINER,
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-        }}>
-          <Space direction="vertical" size="large">
-            <Spin size="large" />
-            <div>
-              <p style={{ margin: 0 }}>正在生成课程方案...</p>
-              <p style={{ margin: '4px 0 0 0' }}>进度: {Math.round(generationProgress)}%</p>
-            </div>
-            <Button danger onClick={abortWorkflow}>
-              中止生成
-            </Button>
-          </Space>
-        </div>
-      )}
-
+      {/* 错误提示 - 使用绝对定位 */}
       {generationError && (
         <div style={{
           position: 'absolute',
@@ -500,7 +501,55 @@ function App() {
           <Space size="large">
             <span>UbD-PBL 课程架构师</span>
             {viewMode === 'course' && courseInfo && (
-              <Text type="secondary">{courseInfo.title}</Text>
+              <Space size="small">
+                <Text type="secondary">{courseInfo.title}</Text>
+                <Popover
+                  title="课程信息"
+                  trigger="click"
+                  content={
+                    <Descriptions column={1} size="small" style={{ maxWidth: 500 }}>
+                      <Descriptions.Item label="课程名称">
+                        {courseInfo.title}
+                      </Descriptions.Item>
+                      {courseInfo.subject && (
+                        <Descriptions.Item label="学科领域">
+                          {courseInfo.subject}
+                        </Descriptions.Item>
+                      )}
+                      {courseInfo.gradeLevel && (
+                        <Descriptions.Item label="年级水平">
+                          {courseInfo.gradeLevel}
+                        </Descriptions.Item>
+                      )}
+                      {courseInfo.totalClassHours && (
+                        <Descriptions.Item label="课程课时">
+                          {courseInfo.totalClassHours} 课时
+                        </Descriptions.Item>
+                      )}
+                      {courseInfo.scheduleDescription && (
+                        <Descriptions.Item label="上课周期">
+                          {courseInfo.scheduleDescription}
+                        </Descriptions.Item>
+                      )}
+                      {courseInfo.description && (
+                        <Descriptions.Item label="课程简介">
+                          <div style={{ maxWidth: 400, whiteSpace: 'pre-wrap' }}>
+                            {courseInfo.description}
+                          </div>
+                        </Descriptions.Item>
+                      )}
+                    </Descriptions>
+                  }
+                >
+                  <InfoCircleOutlined
+                    style={{
+                      cursor: 'pointer',
+                      color: '#1890ff',
+                      fontSize: '14px'
+                    }}
+                  />
+                </Popover>
+              </Space>
             )}
           </Space>
         }
@@ -511,7 +560,16 @@ function App() {
 
       {/* 主内容区 */}
       <Content style={{ padding: 0, overflow: 'hidden', flex: 1 }}>
-        {viewMode === 'list' ? (
+        {viewMode === 'home' ? (
+          <div style={{ height: '100%', overflowY: 'auto' }}>
+            <Suspense fallback={<LoadingFallback />}>
+              <HomePage
+                onStartClick={handleStartFromHome}
+                onHelpClick={() => setHelpDialogOpen(true)}
+              />
+            </Suspense>
+          </div>
+        ) : viewMode === 'list' ? (
           <div style={{ height: '100%', overflowY: 'auto' }}>
             <PageContainer maxWidth="full" padding="MD">
               <Suspense fallback={<LoadingFallback />}>
@@ -555,7 +613,7 @@ function App() {
           layout="vertical"
           onFinish={handleCreateCourse}
           initialValues={{
-            durationWeeks: 12,
+            totalClassHours: 40,
           }}
         >
           <Form.Item
@@ -575,11 +633,29 @@ function App() {
           </Form.Item>
 
           <Form.Item
-            name="durationWeeks"
-            label="课程时长（周）"
-            rules={[{ required: true, message: '请输入课程时长' }]}
+            name="totalClassHours"
+            label="课程总课时"
+            tooltip="按45分钟一节课计算，例如40课时"
+            rules={[{ required: true, message: '请输入课程总课时' }]}
           >
-            <Input type="number" min={1} max={52} />
+            <Input
+              type="number"
+              min={1}
+              placeholder="例如：40"
+              suffix="课时"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="scheduleDescription"
+            label="上课周期"
+            tooltip="描述课程的时间安排"
+            rules={[{ required: true, message: '请描述上课周期' }]}
+          >
+            <Input.TextArea
+              rows={2}
+              placeholder="例如：共4周，每周1次，一次半天3个小时"
+            />
           </Form.Item>
 
           <Form.Item name="description" label="课程简介">

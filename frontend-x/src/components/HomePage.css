@@ -1,0 +1,545 @@
+/**
+ * HomePage.css - 渐变流体设计样式
+ * 国际顶级水准的现代设计
+ */
+
+/* ==================== 变量定义 ==================== */
+:root {
+  /* 主题色：紫蓝渐变（教育科技感） */
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --hero-gradient: linear-gradient(180deg, #f8f9fe 0%, #ffffff 100%);
+
+  /* 流体形状渐变 */
+  --blob-1: radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
+  --blob-2: radial-gradient(circle at 80% 30%, rgba(118, 75, 162, 0.08) 0%, transparent 50%);
+  --blob-3: radial-gradient(circle at 50% 80%, rgba(102, 126, 234, 0.06) 0%, transparent 50%);
+
+  /* 玻璃态效果 */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  /* 文本色 */
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+}
+
+/* ==================== 容器样式 ==================== */
+.homepage-container {
+  min-height: 100vh;
+  background: var(--hero-gradient);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ==================== 背景装饰层 ==================== */
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 渐变流体形状 */
+.gradient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  animation: float 20s ease-in-out infinite;
+}
+
+.gradient-blob.blob-1 {
+  width: 600px;
+  height: 600px;
+  top: -100px;
+  left: -100px;
+  background: var(--blob-1);
+  animation-delay: 0s;
+}
+
+.gradient-blob.blob-2 {
+  width: 500px;
+  height: 500px;
+  top: 100px;
+  right: -50px;
+  background: var(--blob-2);
+  animation-delay: 5s;
+}
+
+.gradient-blob.blob-3 {
+  width: 700px;
+  height: 700px;
+  bottom: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--blob-3);
+  animation-delay: 10s;
+}
+
+/* 网格图案 */
+.grid-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(102, 126, 234, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 126, 234, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.5;
+}
+
+/* ==================== Hero区域 ==================== */
+.hero-section {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 24px 80px;
+  text-align: center;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Hero标题 */
+.hero-title {
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  animation: fadeInUp 0.8s ease-out 0.1s backwards;
+}
+
+/* 渐变文字 */
+.gradient-text {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  display: inline-block;
+}
+
+.gradient-text::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+/* Hero副标题 */
+.hero-subtitle {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 48px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
+
+/* 主CTA按钮 */
+.cta-button-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+  padding: 0 48px;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  background: var(--primary-gradient);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.8s ease-out 0.3s backwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-button-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cta-button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
+}
+
+.cta-button-primary:hover::before {
+  opacity: 1;
+}
+
+.cta-button-primary:active {
+  transform: translateY(0);
+}
+
+/* 信任指标 */
+.trust-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 40px;
+  font-size: 16px;
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+.trust-indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trust-indicator-icon {
+  color: #10b981;
+  font-size: 18px;
+}
+
+/* ==================== 功能卡片区域 ==================== */
+.features-section {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 32px;
+}
+
+/* 玻璃态卡片 */
+.glass-card {
+  position: relative;
+  padding: 40px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+.card-icon {
+  font-size: 56px;
+  margin-bottom: 24px;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.card-description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ==================== 流程区域 ==================== */
+.process-section {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent 0%, rgba(102, 126, 234, 0.03) 100%);
+  padding: 100px 24px;
+  margin-top: 60px;
+}
+
+.process-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 80px;
+  color: var(--text-primary);
+}
+
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 48px;
+  position: relative;
+}
+
+/* 连接线（仅在桌面端显示） */
+.process-steps::before {
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.3) 20%,
+    rgba(102, 126, 234, 0.3) 80%,
+    transparent 100%
+  );
+  z-index: 0;
+}
+
+.process-step {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-number {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  background: var(--primary-gradient);
+  border-radius: 50%;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  position: relative;
+}
+
+.step-number::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: white;
+  border-radius: 50%;
+  z-index: -1;
+}
+
+.step-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.step-description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ==================== 底部CTA区域 ==================== */
+.bottom-cta {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px;
+  text-align: center;
+}
+
+.bottom-cta-title {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: var(--text-primary);
+}
+
+/* ==================== 页脚 ==================== */
+.homepage-footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(102, 126, 234, 0.1);
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.footer-link:hover {
+  color: #667eea;
+}
+
+.footer-divider {
+  color: rgba(102, 126, 234, 0.3);
+  margin: 0 4px;
+}
+
+/* ==================== 动画定义 ==================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 42px;
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+  }
+
+  .cta-button-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trust-indicators {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-title {
+    font-size: 32px;
+  }
+
+  .process-steps::before {
+    display: none;
+  }
+
+  .gradient-blob.blob-1,
+  .gradient-blob.blob-2,
+  .gradient-blob.blob-3 {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 80px 16px 60px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .cta-button-primary {
+    height: 56px;
+    font-size: 18px;
+    padding: 0 32px;
+  }
+
+  .glass-card {
+    padding: 32px 24px;
+  }
+
+  .process-section {
+    padding: 60px 16px;
+  }
+
+  .bottom-cta {
+    padding: 60px 16px;
+  }
+}
+
+/* ==================== 高级动画效果 ==================== */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
