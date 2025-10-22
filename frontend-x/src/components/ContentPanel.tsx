@@ -3,9 +3,10 @@
  * 展示UbD三阶段的Markdown内容
  *
  * V2: 简化为Markdown展示（移除JSON解析逻辑）
+ * V3: 添加智能自动滚动功能
  */
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Card, Space, Button, Tooltip, Empty } from 'antd';
 import { EditOutlined, EyeOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { MarkdownPreview } from './MarkdownPreview';
@@ -65,6 +66,15 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
   isGenerating = false,
   style,
 }) => {
+  // Ref for the scrollable container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Track if we should auto-scroll (true by default, false if user manually scrolls)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  // Track the last scroll position to detect user scrolling
+  const lastScrollTop = useRef<number>(0);
+
   /**
    * 获取当前阶段的数据（用于判断是否已生成）
    */
@@ -80,6 +90,68 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
         return undefined;
     }
   };
+
+  /**
+   * Check if scroll is at bottom (within 10px threshold)
+   */
+  const isScrollAtBottom = (element: HTMLDivElement): boolean => {
+    const threshold = 10;
+    return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold;
+  };
+
+  /**
+   * Scroll to bottom smoothly
+   */
+  const scrollToBottom = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  /**
+   * Handle user scroll - detect if user scrolled up manually
+   */
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+
+    const element = scrollContainerRef.current;
+    const currentScrollTop = element.scrollTop;
+
+    // If user scrolled up (not at bottom), disable auto-scroll
+    if (currentScrollTop < lastScrollTop.current && !isScrollAtBottom(element)) {
+      setShouldAutoScroll(false);
+    }
+
+    // If user scrolled back to bottom, re-enable auto-scroll
+    if (isScrollAtBottom(element)) {
+      setShouldAutoScroll(true);
+    }
+
+    lastScrollTop.current = currentScrollTop;
+  };
+
+  /**
+   * Auto-scroll when content changes (only during generation)
+   */
+  useEffect(() => {
+    if (isGenerating && shouldAutoScroll) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
+    }
+  }, [stageOneData, stageTwoData, stageThreeData, isGenerating, shouldAutoScroll]);
+
+  /**
+   * Reset auto-scroll when step changes or generation starts
+   */
+  useEffect(() => {
+    setShouldAutoScroll(true);
+    lastScrollTop.current = 0;
+  }, [currentStep, isGenerating]);
 
   /**
    * 渲染内容
@@ -149,14 +221,25 @@ export const ContentPanel: React.FC<ContentPanelProps> = ({
       style={{ height: '100%', display: 'flex', flexDirection: 'column', ...style }}
       styles={{
         body: {
-          overflowY: 'auto',
-          padding: '24px',
+          padding: 0,
           flex: 1,
-          minHeight: 0
+          minHeight: 0,
+          overflow: 'hidden'
         }
       }}
     >
-      {renderContent()}
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        style={{
+          height: '100%',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          padding: '24px'
+        }}
+      >
+        {renderContent()}
+      </div>
     </Card>
   );
 };
