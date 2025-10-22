@@ -36,7 +36,8 @@ class TestChatStreamIntegration:
             title="AI编程课程",
             subject="计算机科学",
             grade_level="高中",
-            duration_weeks=12,
+            total_class_hours=40,
+            schedule_description="共12周，每周1次，一次3个课时",
             description="AI编程入门",
             stage_one_data="""# 阶段一：确定预期学习结果
 
