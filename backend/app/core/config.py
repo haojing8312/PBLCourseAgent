@@ -25,14 +25,19 @@ class Settings(BaseSettings):
 
     # 服务器配置
     host: str = "localhost"
-    port: int = 8000
+    port: int = 48097
     debug: bool = True
 
     # 数据库配置
     database_url: str = "sqlite:///./app.db"
 
     # CORS配置
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"]
+    cors_origins: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:48098",
+        "http://1.95.87.0:48098",
+    ]
 
     # 性能配置
     max_timeout: int = 90  # 最大响应时间（秒）

@@ -198,7 +198,7 @@ PBLCourseAgent 是一个基于Understanding by Design (UbD)框架的AI驱动课�
    ```bash
    # Terminal 1: 启动后端
    cd backend
-   uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 48097
 
    # Terminal 2: 启动前端
    cd frontend-x
@@ -212,9 +212,9 @@ PBLCourseAgent 是一个基于Understanding by Design (UbD)框架的AI驱动课�
    ```
 
 6. **访问应用**
-   - 前端界面: http://localhost:5173 (Vite默认端口)
-   - 后端API: http://localhost:8000
-   - API文档: http://localhost:8000/docs
+   - 前端界面: http://localhost:48098
+   - 后端API: http://localhost:48097
+   - API文档: http://localhost:48097/docs
 
 
 

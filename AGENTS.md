@@ -230,10 +230,10 @@ cp .env.example .env
 # PBL_AI_BASE_URL=http://your-service-url/v1
 
 # 4. 启动开发服务器
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 48097
 ```
 
-**API访问**: http://localhost:8000/docs (Swagger文档)
+**API访问**: http://localhost:48097/docs (Swagger文档)
 
 ### 前端设置（V3）
 
@@ -243,7 +243,7 @@ npm install
 npm run dev
 ```
 
-**前端访问**: http://localhost:5173
+**前端访问**: http://localhost:48098
 
 ---
 
@@ -584,7 +584,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 **运行测试**: `uv run pytest app/tests/ -v`
 
-**API文档**: http://localhost:8000/docs
+**API文档**: http://localhost:48097/docs
 
 **Prompt位置**: `backend/app/prompts/phr/`
 

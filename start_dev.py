@@ -48,7 +48,7 @@ def start_backend():
             "app.main:app",
             "--reload",
             "--host", "0.0.0.0",
-            "--port", "8000"
+            "--port", "48097"
         ], check=True)
     except KeyboardInterrupt:
         print("\n💤 后端服务已停止")
@@ -81,8 +81,8 @@ def start_frontend():
     try:
         with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
             print(f"✅ 前端服务运行在: http://localhost:{PORT}")
-            print(f"✅ 后端API运行在: http://localhost:8000")
-            print(f"📖 API文档: http://localhost:8000/docs")
+            print(f"✅ 后端API运行在: http://localhost:48097")
+            print(f"📖 API文档: http://localhost:48097/docs")
             print(f"\n🎉 Project Genesis AI 开发环境已启动！")
             print(f"📝 打开浏览器访问: http://localhost:{PORT}")
             print(f"\n按 Ctrl+C 停止服务")
