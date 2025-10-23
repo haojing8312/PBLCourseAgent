@@ -3,7 +3,7 @@
  * 处理课程方案导出为Markdown文件
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/config/api';
 
 /**
  * 导出课程为Markdown文件并触发浏览器下载

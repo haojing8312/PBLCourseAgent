@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { CourseProject } from '../types/course';
+import { API_BASE_URL } from '@/config/api';
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -53,7 +54,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
   const loadProjects = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/courses');
+      const response = await fetch(`${API_BASE_URL}/v1/courses`);
       if (response.ok) {
         const data = await response.json();
         setProjects(data);
@@ -74,7 +75,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
    */
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/courses/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/v1/courses/${id}`, {
         method: 'DELETE',
       });
 
@@ -94,7 +95,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
    */
   const handleCopy = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/courses/${id}/copy`, {
+      const response = await fetch(`${API_BASE_URL}/v1/courses/${id}/copy`, {
         method: 'POST',
       });
 

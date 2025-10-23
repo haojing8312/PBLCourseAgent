@@ -4,8 +4,7 @@
  */
 
 import type { WorkflowRequest, SSEEvent, StageOneData, StageTwoData, StageThreeData } from '../types/course';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/config/api';
 
 export interface WorkflowEventHandlers {
   onStart?: (data: SSEEvent['data']) => void;
