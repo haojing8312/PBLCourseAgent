@@ -69,7 +69,7 @@ export async function streamChat(
   const abortController = new AbortController();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/chat/stream`, {
+    const response = await fetch(`${API_BASE_URL}/v1/chat/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export async function streamChat(
  */
 export async function chat(request: ChatRequest): Promise<string> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+    const response = await fetch(`${API_BASE_URL}/v1/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -54,7 +54,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
   const loadProjects = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/courses`);
+      const response = await fetch(`${API_BASE_URL}/courses`);
       if (response.ok) {
         const data = await response.json();
         setProjects(data);
@@ -75,7 +75,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
    */
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/courses/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
         method: 'DELETE',
       });
 
@@ -95,7 +95,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
    */
   const handleCopy = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/courses/${id}/copy`, {
+      const response = await fetch(`${API_BASE_URL}/courses/${id}/copy`, {
         method: 'POST',
       });
 

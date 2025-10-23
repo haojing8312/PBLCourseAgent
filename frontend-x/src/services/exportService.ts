@@ -13,7 +13,7 @@ import { API_BASE_URL } from '@/config/api';
  */
 export async function exportCourseAsMarkdown(courseId: number): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/export/markdown`, {
+    const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}/export/markdown`, {
       method: 'GET',
     });
 
@@ -75,7 +75,7 @@ function downloadBlob(blob: Blob, filename: string): void {
  * @returns Markdown文本内容
  */
 export async function previewMarkdown(courseId: number): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/export/markdown`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}/export/markdown`, {
     method: 'GET',
   });
 

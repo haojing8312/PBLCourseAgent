@@ -26,7 +26,7 @@ export interface UpdateCourseRequest {
  * 创建新课程
  */
 export async function createCourse(request: CreateCourseRequest): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export async function createCourse(request: CreateCourseRequest): Promise<Course
  * 获取课程详情
  */
 export async function getCourse(courseId: number): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}`);
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}`);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -60,7 +60,7 @@ export async function getCourse(courseId: number): Promise<CourseProject> {
  * 获取课程列表
  */
 export async function listCourses(skip = 0, limit = 100): Promise<CourseProject[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses?skip=${skip}&limit=${limit}`);
+  const response = await fetch(`${API_BASE_URL}/v1/courses?skip=${skip}&limit=${limit}`);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -77,7 +77,7 @@ export async function updateCourse(
   courseId: number,
   request: UpdateCourseRequest
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export async function updateCourse(
  * 删除课程
  */
 export async function deleteCourse(courseId: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}`, {
     method: 'DELETE',
   });
 
@@ -114,7 +114,7 @@ export async function updateStageOne(
   courseId: number,
   markdown: string
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/stage-one`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}/stage-one`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ export async function updateStageTwo(
   courseId: number,
   markdown: string
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/stage-two`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}/stage-two`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ export async function updateStageThree(
   courseId: number,
   markdown: string
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/stage-three`, {
+  const response = await fetch(`${API_BASE_URL}/v1/courses/${courseId}/stage-three`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
