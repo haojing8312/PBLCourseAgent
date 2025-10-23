@@ -34,7 +34,7 @@ export async function streamWorkflow(
   const abortController = new AbortController();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/v1/workflow/stream`, {
+    const response = await fetch(`${API_BASE_URL}/workflow/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
