@@ -58,10 +58,10 @@ cp .env.example .env
 uv run alembic upgrade head
 
 # Start backend server
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 48097
 ```
 
-Backend will be available at `http://localhost:8000`
+Backend will be available at `http://localhost:48097`
 
 ### 3. Frontend Setup
 
@@ -75,7 +75,7 @@ npm install
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:3000`
+Frontend will be available at `http://localhost:48098`
 
 ### 4. Verify Setup
 

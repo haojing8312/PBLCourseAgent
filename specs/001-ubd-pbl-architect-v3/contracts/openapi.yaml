@@ -12,7 +12,7 @@ info:
   contact:
     name: PBLCourseAgent Team
 servers:
-  - url: http://localhost:8000
+  - url: http://localhost:48097
     description: Local development server
   - url: https://api.pblcourseagent.com
     description: Production server (future)

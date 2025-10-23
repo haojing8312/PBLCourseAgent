@@ -105,7 +105,7 @@ cp .env.example .env
 # 编辑.env文件，填入API密钥
 
 # 启动服务
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 48097
 ```
 
 ### 前端启动
@@ -119,7 +119,7 @@ npm install
 # 启动开发服务器
 npm run dev
 
-# 访问 http://localhost:5173
+# 访问 http://localhost:48098
 ```
 
 ### Docker部署 (可选)
