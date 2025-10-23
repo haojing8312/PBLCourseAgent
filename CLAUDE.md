@@ -434,30 +434,64 @@ def test_02_workflow_api_accepts_new_fields(self):
 eduagents/
 ├── backend/                 # Python + FastAPI后端
 │   ├── app/
-│   │   ├── agents/          # 三个AI Agent实现
-│   │   ├── api/             # FastAPI路由
-│   │   ├── core/            # 核心配置和工具
-│   │   ├── models/          # 数据模型
-│   │   ├── services/        # AI服务和业务逻辑
+│   │   ├── agents/          # 三个AI Agent (V3版本)
+│   │   │   ├── project_foundation_v3.py
+│   │   │   ├── assessment_framework_v3.py
+│   │   │   ├── learning_blueprint_v3.py
+│   │   │   └── course_chat_agent.py
+│   │   ├── api/v1/          # API端点
+│   │   │   ├── course.py    # 课程CRUD
+│   │   │   ├── generate.py  # SSE流式生成
+│   │   │   └── chat.py      # AI对话接口
+│   │   ├── models/          # SQLAlchemy模型
+│   │   │   ├── course_project.py
+│   │   │   └── stage_data.py
+│   │   ├── services/        # 业务逻辑
+│   │   │   ├── workflow_service_v3.py
+│   │   │   ├── validation_service.py
+│   │   │   └── export_service.py
+│   │   ├── prompts/phr/     # Prompt History Records
+│   │   │   ├── project_foundation_v3_markdown.md
+│   │   │   ├── assessment_framework_v3_markdown.md
+│   │   │   └── learning_blueprint_v3_markdown.md
+│   │   ├── templates/       # Jinja2模板
+│   │   │   └── course_export_v3.md.jinja2
 │   │   └── tests/           # 后端测试
 │   ├── pyproject.toml       # uv项目配置
 │   ├── .env                 # 环境变量（不提交）
 │   └── main.py
-├── frontend-v2/             # React + TypeScript + tldraw前端（画布架构）
+├── frontend-x/              # React + TypeScript + Ant Design X前端
 │   ├── src/
 │   │   ├── components/      # React组件
-│   │   │   ├── canvas/      # 无限画布组件
-│   │   │   ├── chat/        # AI聊天组件
-│   │   │   ├── toolbar/     # 工具栏组件
-│   │   │   └── workflow/    # 工作流组件
-│   │   ├── services/        # API调用和业务服务
+│   │   │   ├── ChatPanel.tsx         # AI对话面板
+│   │   │   ├── ContentPanel.tsx      # 内容展示面板
+│   │   │   ├── MarkdownEditor.tsx    # Markdown编辑器
+│   │   │   ├── HelpDialog.tsx        # 帮助文档对话框
+│   │   │   ├── OnboardingOverlay.tsx # 新手引导
+│   │   │   ├── ProjectListView.tsx   # 项目列表
+│   │   │   └── ChangeDetectionDialog.tsx # 变更检测
+│   │   ├── hooks/           # Custom Hooks
+│   │   │   ├── useStepWorkflow.ts
+│   │   │   ├── useChatConversation.ts
+│   │   │   └── useMarkdownSync.ts
+│   │   ├── services/        # API调用
+│   │   │   ├── workflowService.ts
+│   │   │   ├── conversationService.ts
+│   │   │   └── exportService.ts
 │   │   ├── stores/          # Zustand状态管理
+│   │   │   └── courseStore.ts
 │   │   ├── types/           # TypeScript类型定义
-│   │   └── utils/           # 工具函数
+│   │   │   └── course.ts
+│   │   └── constants/       # 常量
+│   │       └── ubdDefinitions.ts
 │   ├── package.json
 │   └── vite.config.ts
 ├── docs/                    # 文档和基准案例
-├── tests/                   # 集成测试
+│   ├── user-guide-v3.md     # 用户指南
+│   ├── CHAT_ARTIFACT_FEATURE.md  # 聊天修改功能文档
+│   └── screenshots/         # 截图
+├── specs/                   # 规格文档
+│   └── 001-ubd-pbl-architect-v3/
 └── CLAUDE.md               # 此文件（开发配置和质量标准）
 ```
 

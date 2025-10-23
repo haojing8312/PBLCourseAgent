@@ -187,11 +187,14 @@ eduagents/
 │   ├── pyproject.toml       # uv项目配置
 │   ├── .env                 # 环境变量（不提交）
 │   └── main.py
-├── frontend-v2/             # React + tldraw前端（Phase 2）
+├── frontend-x/              # React + Ant Design X前端（V3）
 │   ├── src/
-│   │   ├── components/
-│   │   ├── services/
-│   │   └── stores/
+│   │   ├── components/      # React组件（ChatPanel, ContentPanel等）
+│   │   ├── services/        # API调用服务
+│   │   ├── stores/          # Zustand状态管理
+│   │   ├── hooks/           # Custom Hooks
+│   │   ├── types/           # TypeScript类型定义
+│   │   └── constants/       # 常量（UbD定义等）
 │   └── package.json
 ├── docs/                    # 文档和基准案例
 ├── AGENTS.md               # 本文件（机器可读文档）
@@ -232,13 +235,15 @@ uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 **API访问**: http://localhost:8000/docs (Swagger文档)
 
-### 前端设置（Phase 2）
+### 前端设置（V3）
 
 ```bash
-cd frontend-v2
+cd frontend-x
 npm install
 npm run dev
 ```
+
+**前端访问**: http://localhost:5173
 
 ---
 

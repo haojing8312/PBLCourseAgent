@@ -36,7 +36,7 @@
 
 **Implementation Note**:
 - 前端组件: `TooltipHelper.tsx`(一级), `HelpDialog.tsx`(二级), `OnboardingOverlay.tsx`(三级)
-- 说明文本存储: `frontend-v2/src/constants/ubdDefinitions.ts`(便于多语言扩展)
+- 说明文本存储: `frontend-x/src/constants/ubdDefinitions.ts`(便于多语言扩展)
 
 ---
 
@@ -209,7 +209,7 @@
 - 后端: `backend/app/api/v1/generate.py::stream_workflow()`
   - 使用`fastapi.responses.StreamingResponse`
   - Yield格式: `data: {"type": "agent_progress", "agent": "stage_two", "percent": 60}\n\n`
-- 前端: `frontend-v2/src/hooks/useWorkflowStream.ts`
+- 前端: `frontend-x/src/hooks/useStepWorkflow.ts`
   - 使用`EventSource` API监听SSE
   - 更新Zustand store中的`workflowProgress`状态
 
@@ -410,12 +410,12 @@
 2. **新建文件**:
    - `backend/app/services/validation_service.py`
    - `backend/app/config/ubd_rules.yaml`
-   - `frontend-v2/src/components/TooltipHelper.tsx`
-   - `frontend-v2/src/components/HelpDialog.tsx`
-   - `frontend-v2/src/components/OnboardingOverlay.tsx`
-   - `frontend-v2/src/components/ChangeDetectionDialog.tsx`
-   - `frontend-v2/src/constants/ubdDefinitions.ts`
-   - `frontend-v2/src/hooks/useWorkflowStream.ts`
+   - `frontend-x/src/components/TooltipHelper.tsx`
+   - `frontend-x/src/components/HelpDialog.tsx`
+   - `frontend-x/src/components/OnboardingOverlay.tsx`
+   - `frontend-x/src/components/ChangeDetectionDialog.tsx`
+   - `frontend-x/src/constants/ubdDefinitions.ts`
+   - `frontend-x/src/hooks/useStepWorkflow.ts`
 
 3. **PHR文件创建**:
    - `backend/app/prompts/phr/project_foundation_v2.md`

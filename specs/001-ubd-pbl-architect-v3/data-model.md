@@ -456,7 +456,7 @@ CREATE INDEX idx_course_stage_versions ON course_projects USING GIN(stage_versio
 1. **ORM Models**: 在`backend/app/models/`中实现SQLAlchemy models
 2. **Migration Scripts**: 使用Alembic创建数据库迁移
 3. **Pydantic Schemas**: 在`backend/app/schemas/`中创建API请求/响应schema
-4. **TypeScript Types**: 在`frontend-v2/src/types/course.ts`中生成对应的TS接口
+4. **TypeScript Types**: 在`frontend-x/src/types/course.ts`中生成对应的TS接口
 5. **Validation Service**: 实现`backend/app/services/validation_service.py`中的验证逻辑
 6. **Test Fixtures**: 创建测试用的golden standard数据符合新schema
 

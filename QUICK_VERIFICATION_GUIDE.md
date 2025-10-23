@@ -18,7 +18,7 @@ curl http://localhost:8888/api/v1/status
 cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8888 --reload
 
 # 启动前端(新终端)
-cd frontend-v2 && npm run dev
+cd frontend-x && npm run dev
 ```
 
 ---

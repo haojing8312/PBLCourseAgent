@@ -488,7 +488,7 @@ npm install -g @openapitools/openapi-generator-cli
 openapi-generator-cli generate \
   -i contracts/openapi.yaml \
   -g typescript-fetch \
-  -o frontend-v2/src/api-client
+  -o frontend-x/src/api-client
 
 # Generate Python client (for testing)
 openapi-generator-cli generate \
