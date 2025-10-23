@@ -104,7 +104,6 @@ temp/
 exports/
 *.docx
 *.pdf
-*.png
 *.svg
 
 # uv package manager
