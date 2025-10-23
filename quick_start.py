@@ -25,7 +25,7 @@ def start_backend_uv():
             "app.main:app",
             "--reload",
             "--host", "0.0.0.0",
-            "--port", "8000"
+            "--port", "48097"
         ], check=True)
     except KeyboardInterrupt:
         print("\n💤 后端服务已停止")
@@ -54,10 +54,10 @@ def start_frontend():
     try:
         with socketserver.TCPServer(("", PORT), CustomHTTPRequestHandler) as httpd:
             print(f"✅ 前端服务: http://localhost:{PORT}")
-            print(f"✅ 后端API: http://localhost:8000")
-            print(f"📖 API文档: http://localhost:8000/docs")
+            print(f"✅ 后端API: http://localhost:48097")
+            print(f"📖 API文档: http://localhost:48097/docs")
             print(f"\n🎉 Project Genesis AI 就绪！")
-            print(f"🎯 快速测试: curl http://localhost:8000/health")
+            print(f"🎯 快速测试: curl http://localhost:48097/health")
             print(f"\n按 Ctrl+C 停止服务")
             httpd.serve_forever()
     except KeyboardInterrupt:
