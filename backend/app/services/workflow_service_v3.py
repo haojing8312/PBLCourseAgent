@@ -116,7 +116,7 @@ class WorkflowServiceV3:
                                 "stage": 1,
                                 "progress": event["progress"],
                                 "message": f"生成中... ({int(event['progress'] * 100)}%)",
-                                "markdown_preview": event["content"],  # 实时预览
+                                "markdown": event["content"],  # 实时预览
                             },
                         })
                     elif event["type"] == "complete":
@@ -172,7 +172,7 @@ class WorkflowServiceV3:
                                 "stage": 2,
                                 "progress": event["progress"],
                                 "message": f"生成中... ({int(event['progress'] * 100)}%)",
-                                "markdown_preview": event["content"],
+                                "markdown": event["content"],
                             },
                         })
                     elif event["type"] == "complete":
@@ -229,7 +229,7 @@ class WorkflowServiceV3:
                                 "stage": 3,
                                 "progress": event["progress"],
                                 "message": f"生成中... ({int(event['progress'] * 100)}%)",
-                                "markdown_preview": event["content"],
+                                "markdown": event["content"],
                             },
                         })
                     elif event["type"] == "complete":
