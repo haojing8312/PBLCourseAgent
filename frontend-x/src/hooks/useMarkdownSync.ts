@@ -79,7 +79,7 @@ export function useMarkdownSync(
   const [isSaving, setIsSaving] = useState(false);
 
   // 防抖定时器
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 保存函数
   const save = useCallback(async () => {

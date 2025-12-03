@@ -9,7 +9,7 @@
  * - 复制内容
  */
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, Space, Button, Tooltip, Badge, Spin } from 'antd';
 import {
   DeleteOutlined,
@@ -92,8 +92,9 @@ const MessageBubble: React.FC<{
             rehypePlugins={[rehypeHighlight]}
             components={{
               // 自定义代码块样式
-              code({node, inline, className, children, ...props}) {
-                return inline ? (
+              code({className, children, ...props}) {
+                const isInline = !className;
+                return isInline ? (
                   <code
                     style={{
                       background: '#f6f8fa',

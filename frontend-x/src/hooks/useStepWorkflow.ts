@@ -124,7 +124,7 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
       setGenerationError(null);
 
       // 标记要生成的阶段为in_progress
-      request.stages_to_generate.forEach((stage) => {
+      (request.stages_to_generate || []).forEach((stage) => {
         setStepStatus(stage, 'in_progress');
       });
 
@@ -144,16 +144,16 @@ export function useStepWorkflow(): UseStepWorkflowReturn {
           }
 
           // 处理实时markdown预览
-          if (data.markdown_preview && data.stage) {
+          if (data.markdown && data.stage) {
             switch (data.stage) {
               case 1:
-                setStageOneData(data.markdown_preview);
+                setStageOneData(data.markdown);
                 break;
               case 2:
-                setStageTwoData(data.markdown_preview);
+                setStageTwoData(data.markdown);
                 break;
               case 3:
-                setStageThreeData(data.markdown_preview);
+                setStageThreeData(data.markdown);
                 break;
             }
           }

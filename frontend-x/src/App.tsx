@@ -10,7 +10,7 @@
 
 import React, { useState, lazy, Suspense } from 'react';
 import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin, Typography, Popover, Descriptions } from 'antd';
-import { PlusOutlined, SaveOutlined, ArrowLeftOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { SaveOutlined, ArrowLeftOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
@@ -64,10 +64,8 @@ function App() {
 
   // 步骤工作流Hook
   const {
-    generationProgress,
     generationError,
     startWorkflow,
-    abortWorkflow,
   } = useStepWorkflow();
 
   // 新建课程对话框
@@ -113,7 +111,7 @@ function App() {
 
       // 3. 从后端加载完整的项目数据（包括stage数据）
       const { getCourse } = await import('./services/courseService');
-      const fullProject = await getCourse(project.id);
+      const fullProject = await getCourse(project.id!);
 
       // 4. 恢复三个阶段的数据到Store
       const { setStageOneData, setStageTwoData, setStageThreeData } = useCourseStore.getState();
@@ -283,7 +281,8 @@ function App() {
       title: courseInfo?.title || '',
       subject: courseInfo?.subject,
       grade_level: courseInfo?.gradeLevel,
-      duration_weeks: courseInfo?.durationWeeks || 12,
+      total_class_hours: courseInfo?.totalClassHours || 40,
+      schedule_description: courseInfo?.scheduleDescription,
       description: courseInfo?.description,
       stages_to_generate: stages,
     };
@@ -311,7 +310,8 @@ function App() {
       title: courseInfo.title,
       subject: courseInfo.subject,
       grade_level: courseInfo.gradeLevel,
-      duration_weeks: courseInfo.durationWeeks || 12,
+      total_class_hours: courseInfo.totalClassHours || 40,
+      schedule_description: courseInfo.scheduleDescription,
       description: courseInfo.description,
       stages_to_generate: [stage], // 只生成当前阶段
       // 如果生成Stage 2或3，需要提供前置阶段的数据（Markdown字符串）

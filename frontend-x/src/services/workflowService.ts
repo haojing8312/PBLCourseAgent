@@ -138,16 +138,16 @@ export async function streamWorkflow(
 }
 
 /**
- * 辅助函数：从SSE event data中提取stage结果
+ * 辅助函数：从SSE event data中提取stage结果（Markdown格式）
  */
 export function extractStageResult(
   event: SSEEvent
-): StageOneData | StageTwoData | StageThreeData | null {
+): string | null {
   if (event.event !== 'stage_complete') {
     return null;
   }
 
-  return event.data.result || null;
+  return event.data.markdown || null;
 }
 
 /**
