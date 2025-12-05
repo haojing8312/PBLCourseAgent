@@ -184,7 +184,47 @@ PBLCourseAgent 是一个基于Understanding by Design (UbD)框架的AI驱动课�
    # PBL_AI_MODEL=gpt-4o  # 或其他兼容模型
    ```
 
-4. **前端设置**
+4. **配置登录账号**
+
+   系统需要登录后才能使用课程生成功能。用户账号通过 `backend/users.json` 文件配置。
+
+   **方式一：使用管理脚本（推荐）**
+   ```bash
+   cd backend
+
+   # 添加新用户
+   uv run python scripts/manage_users.py add <用户名> <密码>
+   # 例如: uv run python scripts/manage_users.py add teacher mypassword123
+
+   # 查看所有用户
+   uv run python scripts/manage_users.py list
+
+   # 删除用户
+   uv run python scripts/manage_users.py remove <用户名>
+
+   # 生成密码哈希（手动编辑users.json时使用）
+   uv run python scripts/manage_users.py hash <密码>
+   ```
+
+   **方式二：手动编辑 users.json**
+   ```json
+   {
+     "users": {
+       "admin": {
+         "password_hash": "$2b$12$...",  // 使用 manage_users.py hash 生成
+         "disabled": false
+       }
+     }
+   }
+   ```
+
+   > ⚠️ **安全提示**: `users.json` 已添加到 `.gitignore`，请勿提交到版本控制。首次部署时需要手动创建此文件。
+
+   **默认账号**（仅用于开发测试，生产环境请修改）:
+   - 用户名: `admin`
+   - 密码: `admin123`
+
+5. **前端设置**
    ```bash
    cd frontend-x
 
@@ -192,7 +232,7 @@ PBLCourseAgent 是一个基于Understanding by Design (UbD)框架的AI驱动课�
    npm install
    ```
 
-5. **启动服务**
+6. **启动服务**
 
    **方式一：手动启动（推荐用于开发）**
    ```bash
@@ -211,7 +251,7 @@ PBLCourseAgent 是一个基于Understanding by Design (UbD)框架的AI驱动课�
    python quick_start.py
    ```
 
-6. **访问应用**
+7. **访问应用**
    - 前端界面: http://localhost:48098
    - 后端API: http://localhost:48097
    - API文档: http://localhost:48097/docs

@@ -126,3 +126,6 @@ htmlcov/
 # PBLCourseAgent specific
 canvas_exports/
 generated_courses/
+
+# Auth configuration (contains password hashes)
+backend/users.json

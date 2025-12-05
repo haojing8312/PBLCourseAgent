@@ -9,6 +9,13 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """应用设置类"""
 
+    # JWT 认证配置
+    jwt_secret_key: str = Field(
+        default="change-this-to-a-random-secret-key-in-production",
+        alias="JWT_SECRET_KEY"
+    )
+    jwt_expire_hours: int = Field(default=24, alias="JWT_EXPIRE_HOURS")
+
     # OpenAI配置 - 使用PBL专用环境变量名避免冲突
     openai_api_key: str = Field(alias="PBL_AI_API_KEY")
     openai_model: str = Field(default="gpt-4o", alias="PBL_AI_MODEL")

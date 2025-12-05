@@ -4,7 +4,7 @@
  */
 
 import type { ConversationMessage } from '../types/course';
-import { API_BASE_URL } from '@/config/api';
+import { authFetch } from './api';
 
 export interface AddConversationRequest {
   messages: Array<{
@@ -30,7 +30,7 @@ export async function addConversationMessages(
   courseId: number,
   messages: AddConversationRequest['messages']
 ): Promise<any> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/conversation`, {
+  const response = await authFetch(`/courses/${courseId}/conversation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -57,16 +57,13 @@ export async function getConversationHistory(
   courseId: number,
   step?: number
 ): Promise<ConversationHistoryResponse> {
-  const url = new URL(`${API_BASE_URL}/courses/${courseId}/conversation`);
+  let endpoint = `/courses/${courseId}/conversation`;
   if (step !== undefined) {
-    url.searchParams.set('step', step.toString());
+    endpoint += `?step=${step}`;
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await authFetch(endpoint, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
   });
 
   if (!response.ok) {
@@ -87,16 +84,16 @@ export async function clearConversationHistory(
   courseId: number,
   step?: number
 ): Promise<void> {
-  const url = new URL(`${API_BASE_URL}/courses/${courseId}/conversation`);
+  let endpoint = `/courses/${courseId}/conversation`;
   if (step !== undefined) {
-    url.searchParams.set('step', step.toString());
+    endpoint += `?step=${step}`;
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await authFetch(endpoint, {
     method: 'DELETE',
   });
 
-  if (!response.ok) {
+  if (!response.ok && response.status !== 204) {
     const errorText = await response.text();
     throw new Error(`Failed to clear conversation: ${response.status} ${errorText}`);
   }

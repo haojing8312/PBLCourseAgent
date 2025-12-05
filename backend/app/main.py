@@ -42,7 +42,9 @@ def create_app() -> FastAPI:
     from app.api.v1.generate import router as workflow_router
     from app.api.v1.course import router as course_router
     from app.api.v1.chat import router as chat_router
+    from app.api.v1.auth import router as auth_router
 
+    app.include_router(auth_router)      # 认证路由 /api/v1/auth
     app.include_router(workflow_router)  # 已包含/api/v1前缀
     app.include_router(course_router)    # 已包含/api/v1/courses前缀
     app.include_router(chat_router)      # 已包含/api/v1前缀

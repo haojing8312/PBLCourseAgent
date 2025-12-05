@@ -10,7 +10,7 @@
 
 import React, { useState, lazy, Suspense } from 'react';
 import { Layout, Row, Col, Space, Button, Input, Form, Modal, message, Spin, Typography, Popover, Descriptions } from 'antd';
-import { SaveOutlined, ArrowLeftOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { SaveOutlined, ArrowLeftOutlined, InfoCircleOutlined, LogoutOutlined } from '@ant-design/icons';
 import { StepNavigator } from './components/StepNavigator';
 import { ChatPanel } from './components/ChatPanel';
 import { ContentPanel } from './components/ContentPanel';
@@ -19,9 +19,13 @@ import { AppHeader, PageContainer } from './components/layout';
 import { COLORS, SPACING } from './constants/layout';
 import { useStepWorkflow } from './hooks/useStepWorkflow';
 import { useCourseStore } from './stores/courseStore';
+import { useAuthStore } from './stores/authStore';
 import { createCourse } from './services/courseService';
 import type { WorkflowRequest, CourseProject } from './types/course';
 import './App.css';
+
+// 懒加载登录页面
+const LoginPage = lazy(() => import('./components/LoginPage'));
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -46,6 +50,9 @@ const LoadingFallback: React.FC = () => (
 );
 
 function App() {
+  // 认证状态
+  const { isAuthenticated, username, logout } = useAuthStore();
+
   // 视图模式 ('home' | 'list' | 'course')
   const [viewMode, setViewMode] = useState<ViewMode>('home');
 
@@ -417,9 +424,28 @@ function App() {
   };
 
   /**
+   * 处理登出
+   */
+  const handleLogout = () => {
+    logout();
+    message.success('已退出登录');
+  };
+
+  /**
    * 渲染Header右侧操作区
    */
   const renderHeaderActions = () => {
+    // 登出按钮（仅已登录时显示）
+    const logoutButton = isAuthenticated ? (
+      <Button
+        icon={<LogoutOutlined />}
+        onClick={handleLogout}
+        title={`当前用户: ${username}`}
+      >
+        退出
+      </Button>
+    ) : null;
+
     if (viewMode === 'course') {
       return (
         <>
@@ -431,20 +457,24 @@ function App() {
             dropdown={true}
             disabled={!stageOneData}
           />
+          {logoutButton}
         </>
       );
     }
 
     if (viewMode === 'list') {
       return (
-        <Button icon={<ArrowLeftOutlined />} onClick={handleBackToHome}>
-          返回首页
-        </Button>
+        <>
+          <Button icon={<ArrowLeftOutlined />} onClick={handleBackToHome}>
+            返回首页
+          </Button>
+          {logoutButton}
+        </>
       );
     }
 
-    // 首页视图时不显示按钮
-    return null;
+    // 首页视图：已登录显示登出按钮，未登录不显示
+    return logoutButton;
   };
 
   /**
@@ -515,6 +545,16 @@ function App() {
       </Row>
     </div>
   );
+
+  // 未登录且不在首页时，显示登录页
+  // 首页可以公开访问，点击"开始"后才需要登录
+  if (!isAuthenticated && viewMode !== 'home') {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <LoginPage />
+      </Suspense>
+    );
+  }
 
   return (
     <Layout style={{ height: '100vh', overflow: 'hidden', background: COLORS.BG_PAGE }}>

@@ -9,6 +9,7 @@ from datetime import datetime
 import logging
 
 from app.core.database import get_db
+from app.core.auth import get_current_user
 from app.models.course_project import CourseProject
 
 logger = logging.getLogger(__name__)
@@ -98,7 +99,11 @@ class CourseResponse(BaseModel):
 
 
 @router.post("", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
-def create_course(request: CourseCreateRequest, db: Session = Depends(get_db)):
+def create_course(
+    request: CourseCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     """
     创建新课程项目
     """
@@ -162,7 +167,10 @@ def list_courses(
 
 @router.put("/{course_id}", response_model=CourseResponse)
 def update_course(
-    course_id: int, request: CourseUpdateRequest, db: Session = Depends(get_db)
+    course_id: int,
+    request: CourseUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     更新课程基本信息
@@ -195,7 +203,11 @@ def update_course(
 
 
 @router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(course_id: int, db: Session = Depends(get_db)):
+def delete_course(
+    course_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     """
     删除课程
     """
@@ -225,7 +237,10 @@ def delete_course(course_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{course_id}/stage-one", response_model=CourseResponse)
 def update_stage_one(
-    course_id: int, request: StageDataUpdate, db: Session = Depends(get_db)
+    course_id: int,
+    request: StageDataUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     更新Stage One数据 (Markdown格式)
@@ -256,7 +271,10 @@ def update_stage_one(
 
 @router.put("/{course_id}/stage-two", response_model=CourseResponse)
 def update_stage_two(
-    course_id: int, request: StageDataUpdate, db: Session = Depends(get_db)
+    course_id: int,
+    request: StageDataUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     更新Stage Two数据 (Markdown格式)
@@ -287,7 +305,10 @@ def update_stage_two(
 
 @router.put("/{course_id}/stage-three", response_model=CourseResponse)
 def update_stage_three(
-    course_id: int, request: StageDataUpdate, db: Session = Depends(get_db)
+    course_id: int,
+    request: StageDataUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     更新Stage Three数据 (Markdown格式)
@@ -390,7 +411,10 @@ async def export_course_markdown(course_id: int, db: Session = Depends(get_db)):
 
 @router.post("/{course_id}/conversation", response_model=CourseResponse)
 def add_conversation_messages(
-    course_id: int, request: ConversationAddRequest, db: Session = Depends(get_db)
+    course_id: int,
+    request: ConversationAddRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     添加对话消息到历史记录
@@ -462,7 +486,10 @@ def get_conversation_history(
 
 @router.delete("/{course_id}/conversation", status_code=status.HTTP_204_NO_CONTENT)
 def clear_conversation_history(
-    course_id: int, step: Optional[int] = None, db: Session = Depends(get_db)
+    course_id: int,
+    step: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     """
     清除对话历史

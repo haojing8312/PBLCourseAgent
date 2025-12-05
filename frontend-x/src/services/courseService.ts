@@ -4,13 +4,14 @@
  */
 
 import type { CourseProject } from '../types/course';
-import { API_BASE_URL } from '@/config/api';
+import { authFetch } from './api';
 
 export interface CreateCourseRequest {
   title: string;
   subject?: string;
   grade_level?: string;
-  duration_weeks?: number;
+  total_class_hours?: number;
+  schedule_description?: string;
   description?: string;
 }
 
@@ -18,7 +19,8 @@ export interface UpdateCourseRequest {
   title?: string;
   subject?: string;
   grade_level?: string;
-  duration_weeks?: number;
+  total_class_hours?: number;
+  schedule_description?: string;
   description?: string;
 }
 
@@ -26,7 +28,7 @@ export interface UpdateCourseRequest {
  * 创建新课程
  */
 export async function createCourse(request: CreateCourseRequest): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/courses`, {
+  const response = await authFetch('/courses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,7 +48,7 @@ export async function createCourse(request: CreateCourseRequest): Promise<Course
  * 获取课程详情
  */
 export async function getCourse(courseId: number): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}`);
+  const response = await authFetch(`/courses/${courseId}`);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -60,7 +62,7 @@ export async function getCourse(courseId: number): Promise<CourseProject> {
  * 获取课程列表
  */
 export async function listCourses(skip = 0, limit = 100): Promise<CourseProject[]> {
-  const response = await fetch(`${API_BASE_URL}/courses?skip=${skip}&limit=${limit}`);
+  const response = await authFetch(`/courses?skip=${skip}&limit=${limit}`);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -77,7 +79,7 @@ export async function updateCourse(
   courseId: number,
   request: UpdateCourseRequest
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+  const response = await authFetch(`/courses/${courseId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -97,11 +99,11 @@ export async function updateCourse(
  * 删除课程
  */
 export async function deleteCourse(courseId: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+  const response = await authFetch(`/courses/${courseId}`, {
     method: 'DELETE',
   });
 
-  if (!response.ok) {
+  if (!response.ok && response.status !== 204) {
     const errorText = await response.text();
     throw new Error(`Failed to delete course: ${response.status} ${errorText}`);
   }
@@ -114,7 +116,7 @@ export async function updateStageOne(
   courseId: number,
   markdown: string
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/stage-one`, {
+  const response = await authFetch(`/courses/${courseId}/stage-one`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -137,7 +139,7 @@ export async function updateStageTwo(
   courseId: number,
   markdown: string
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/stage-two`, {
+  const response = await authFetch(`/courses/${courseId}/stage-two`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -160,7 +162,7 @@ export async function updateStageThree(
   courseId: number,
   markdown: string
 ): Promise<CourseProject> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/stage-three`, {
+  const response = await authFetch(`/courses/${courseId}/stage-three`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

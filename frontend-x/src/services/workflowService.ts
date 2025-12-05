@@ -5,6 +5,7 @@
 
 import type { WorkflowRequest, SSEEvent, StageOneData, StageTwoData, StageThreeData } from '../types/course';
 import { API_BASE_URL } from '@/config/api';
+import { useAuthStore } from '@/stores/authStore';
 
 export interface WorkflowEventHandlers {
   onStart?: (data: SSEEvent['data']) => void;
@@ -32,13 +33,21 @@ export async function streamWorkflow(
   handlers: WorkflowEventHandlers
 ): Promise<WorkflowStreamResult> {
   const abortController = new AbortController();
+  const token = useAuthStore.getState().token;
 
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // 添加认证头
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}/workflow/stream`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(request),
       signal: abortController.signal,
     });

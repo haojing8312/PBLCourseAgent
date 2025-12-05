@@ -13,6 +13,7 @@ import logging
 import re
 
 from app.core.database import get_db
+from app.core.auth import get_current_user
 from app.models.course_project import CourseProject
 from app.agents.course_chat_agent import get_chat_agent
 
@@ -120,7 +121,11 @@ async def stream_chat_response(
 
 
 @router.post("/chat/stream")
-async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
+async def chat_stream(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     """
     流式对话API（SSE）
 
@@ -212,7 +217,11 @@ async def chat_stream(request: ChatRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/chat")
-async def chat_non_stream(request: ChatRequest, db: Session = Depends(get_db)):
+async def chat_non_stream(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     """
     非流式对话API
 

@@ -2,8 +2,9 @@
 V3 API: 工作流生成端点 (Server-Sent Events)
 支持流式生成三个UbD阶段，带进度事件 - 集成真实的Agent V3
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
+from app.core.auth import get_current_user
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import json
@@ -104,7 +105,10 @@ def format_sse_event(event_data: dict) -> str:
 
 
 @router.post("/workflow/stream")
-async def stream_workflow(request: WorkflowRequest):
+async def stream_workflow(
+    request: WorkflowRequest,
+    current_user: dict = Depends(get_current_user)
+):
     """
     流式生成完整工作流
 
